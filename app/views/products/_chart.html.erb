@@ -1,0 +1,36 @@
+<%= turbo_frame_tag "product-chart" do %>
+  <!-- Period selector -->
+  <div class="chart-controls">
+    <div class="pill-selector">
+      <% [["90", "90 dias"], ["365", "1 ano"], ["all", "Máx"]].each do |value, label| %>
+        <%= link_to label,
+              product_path(@product.slug, variant: @variant.id, period: value),
+              data: { turbo_frame: "product-chart" },
+              class: "pill-option#{' active' if @period == value}" %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @chart_data.size >= 5 %>
+    <div class="chart-card"
+         data-controller="d3-line-chart"
+         data-d3-line-chart-data-value="<%= @chart_data.to_json %>"
+         data-d3-line-chart-seasonal-value="<%= @seasonal_data.to_json %>"
+         data-d3-line-chart-unit-value="<%= @unit_label %>"
+         data-d3-line-chart-curve-type-value="curveMonotoneX">
+      <div class="chart-legend">
+        <span class="legend-item"><span class="legend-swatch legend-price"></span>Preço CEASA (R$/<%= @unit_label %>)</span>
+        <span class="legend-item"><span class="legend-swatch legend-seasonal"></span>Típico do mês (mediana histórica)</span>
+        <label class="legend-toggle">
+          <input type="checkbox" checked data-action="change->d3-line-chart#toggleSeasonal">
+          Mostrar sazonalidade
+        </label>
+      </div>
+      <div data-d3-line-chart-target="chart" style="position: relative;"></div>
+    </div>
+  <% else %>
+    <div class="empty-state chart-empty">
+      <p>Dados insuficientes para gerar o gráfico desta variante.</p>
+    </div>
+  <% end %>
+<% end %>

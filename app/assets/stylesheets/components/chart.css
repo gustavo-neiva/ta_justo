@@ -1,0 +1,37 @@
+/* ── Chart card ───────────────────────────────────────────── */
+.chart-card {
+  background: var(--color-background, #fff);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-md, 16px);
+  margin: var(--space-lg, 24px) 0;
+}
+.chart-empty { margin: var(--space-lg, 24px) 0; }
+
+/* ── Period pill selector ─────────────────────────────────── */
+.chart-controls { margin: var(--space-md, 16px) 0; }
+.pill-selector { display: inline-flex; gap: 4px; background: var(--color-border-light, #f0f0f0); padding: 4px; border-radius: 999px; }
+.pill-option {
+  padding: 6px 14px; border-radius: 999px; font-size: 0.875rem;
+  color: var(--color-text-secondary, #555); text-decoration: none; transition: all 0.15s;
+}
+.pill-option.active { background: var(--color-primary-light, #2e7d32); color: #fff; }
+
+/* ── Legend ───────────────────────────────────────────────── */
+.chart-legend { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md, 16px); margin-bottom: var(--space-sm, 8px); font-size: 0.8125rem; color: var(--color-text-secondary, #555); }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+.legend-price { background: var(--color-primary-light, #2e7d32); }
+.legend-seasonal { background: repeating-linear-gradient(90deg, #b8860b 0 6px, transparent 6px 9px); }
+.legend-toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+
+/* ── D3 tooltip (used by d3_line_chart_controller) ────────── */
+.d3-tooltip {
+  position: absolute; pointer-events: none; background: rgba(33, 33, 33, 0.92);
+  color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem;
+  line-height: 1.4; white-space: nowrap; z-index: 10;
+}
+
+/* ── Reactive /precos filter ──────────────────────────────── */
+.precos-filter { margin: var(--space-md, 16px) 0; }
+.precos-filter .form-control { max-width: 360px; width: 100%; }

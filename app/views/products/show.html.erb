@@ -66,6 +66,9 @@
       </div>
     </div>
 
+    <!-- Historical price chart -->
+    <%= render "chart" %>
+
     <!-- Variant Selector -->
     <% if @variants.count > 1 %>
       <div class="variant-selector">
@@ -73,7 +76,7 @@
         <div class="variant-links">
           <% @variants.each do |v| %>
             <%= link_to v.name, 
-                product_path(@product.slug, variant: v.id),
+                product_path(@product.slug, variant: v.id, period: @period),
                 class: "variant-link #{'active' if v.id == @variant.id}" %>
           <% end %>
         </div>
@@ -88,44 +91,41 @@
       </p>
 
       <%= form_with url: product_path(@product.slug), method: :get, class: "checker-form" do |f| %>
+        <%= hidden_field_tag :variant, @variant.id %>
         <div class="form-group">
-          <label for="check_price">Preço por kg (R$)</label>
-          <input 
-            type="number" 
-            step="0.01" 
-            min="0.01"
-            name="check_price" 
-            id="check_price" 
-            class="form-control" 
-            placeholder="Ex: 8.50"
-            value="<%= params[:check_price] %>">
+          <label for="check_price">Preço por <%= @unit_label %> (R$)</label>
+          <input type="number" step="0.01" min="0.01" name="check_price" id="check_price" 
+                 class="form-control" placeholder="Ex: 8.50" value="<%= params[:check_price] %>">
         </div>
 
         <button type="submit" class="button primary">Verificar</button>
       <% end %>
 
-      <% if @verdict %>
+      <% if @verdict_error %>
+        <p class="verdict-error"><%= @verdict_error %></p>
+      <% elsif @verdict %>
         <div class="verdict-result <%= @verdict.verdict %>" style="margin-top: var(--space-md);">
           <div class="verdict-badge <%= @verdict.verdict %>">
-            <% case @verdict.verdict %>
-            <% when :barato %>
-              ✅ Barato
-            <% when :media %>
-              ➖ Na média
-            <% when :caro %>
-              ⚠️ Caro
-            <% end %>
+            <% badge_text =
+                 case @verdict.verdict
+                 when :barato then "✅ Barato"
+                 when :media  then "➖ Na média"
+                 when :caro   then "⚠️ Caro"
+                 end
+            %>
+            <%= badge_text %>
           </div>
-
-          <div class="verdict-explanation">
-            <%= @verdict.explanation %>
+          <div class="verdict-price-row">
+            <span>Você pagou: <strong>R$ <%= "%.2f" % @verdict.paid_comparable %>/<%= @verdict.unit_label %></strong></span>
+            <span>CEASA: <strong>R$ <%= "%.2f" % @verdict.ceasa_comparable %>/<%= @verdict.unit_label %></strong></span>
           </div>
+          <div class="verdict-explanation"><%= @verdict.explanation %></div>
         </div>
       <% end %>
     </div>
 
     <!-- Navigation -->
-    <div style="margin-top: var(--space-xl); text-align: center;">
+    <div style="margin-top: var(--space-xl); display: flex; justify-content: center; gap: var(--space-md); flex-wrap: wrap;">
       <%= link_to "← Todos os preços", precos_path, class: "button secondary" %>
       <%= link_to "Novo checker", root_path, class: "button primary" %>
     </div>

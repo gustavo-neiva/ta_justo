@@ -16,6 +16,17 @@
     <% end %>
   </div>
 
+  <% unless @error %>
+    <%= form_with url: precos_path, method: :get, class: "precos-filter",
+          data: { controller: "list-filter",
+                  list_filter_url_value: precos_path } do %>
+      <input type="search" name="q" value="<%= params[:q] %>"
+             placeholder="Buscar produto…" class="form-control"
+             data-list-filter-target="searchInput"
+             data-action="input->list-filter#debouncedSubmit">
+    <% end %>
+  <% end %>
+
   <% if @error %>
     <div class="empty-state">
       <p><%= @error %></p>
@@ -25,47 +36,63 @@
     </div>
   <% elsif @sections.empty? %>
     <div class="empty-state">
-      <p>Nenhum preço encontrado para hoje.</p>
+      <p>Nenhum preço encontrado<%= " para \"#{params[:q]}\"" if params[:q].present? %>.</p>
     </div>
   <% else %>
-    <div class="price-sections">
+    <%= turbo_frame_tag "precos-list" do %>
+      <div class="price-sections">
       <% @sections.each do |section_num, section_data| %>
         <div class="price-section">
           <div class="price-section-header">
             <h2><%= section_data[:name] %></h2>
-            <span class="badge secondary"><%= section_data[:prices].count %> produtos</span>
+            <span class="badge secondary"><%= section_data[:products].size %> produtos</span>
           </div>
 
           <div class="price-list">
-            <% section_data[:prices].each do |price| %>
-              <% product = price.variant.product %>
-              <% 
-                # Skip if no per-kg price (eggs, per-unit items shown differently)
-                display_price = if price.price_per_kg
-                  "R$ #{number_with_precision(price.price_per_kg, precision: 2)}/kg"
-                elsif price.modal
-                  "R$ #{number_with_precision(price.modal, precision: 2)}"
-                else
-                  "S/C"
-                end
+            <div class="price-list-header">
+              <span class="col-product">Produto</span>
+              <span class="col-price">Preço/kg</span>
+              <span class="col-variation">Var. 12 meses</span>
+            </div>
 
-                variation = price.variation_12m.to_s.strip
-                variation_class = if variation.start_with?('-')
-                  'negative'
-                elsif variation.match?(/^\d/)
-                  'positive'
-                else
-                  'neutral'
-                end
-              %>
+            <% section_data[:products].each do |product, prices| %>
+              <% prices.each_with_index do |price, idx| %>
+                <%
+                  display_price = if price.price_per_kg
+                    "R$ #{number_with_precision(price.price_per_kg, precision: 2)}/kg"
+                  elsif price.modal
+                    "R$ #{number_with_precision(price.modal, precision: 2)}"
+                  else
+                    "S/C"
+                  end
 
-              <%= link_to product_path(product.slug), class: "price-row" do %>
-                <span class="product-name"><%= product.name %></span>
-                <span class="price-value"><%= display_price %></span>
-                <% unless variation.empty? || variation == 'S/C' %>
-                  <span class="variation-chip <%= variation_class %>">
-                    <%= variation %>
+                  variation = price.variation_12m.to_s.strip
+                  variation_class = if variation.start_with?('-')
+                    'negative'
+                  elsif variation.match?(/^\d/)
+                    'positive'
+                  else
+                    'neutral'
+                  end
+
+                  variant_label = price.variant.name
+                %>
+
+                <%= link_to product_path(product.slug), class: "price-row" do %>
+                  <span class="product-name">
+                    <% if idx == 0 %>
+                      <%= product.name %>
+                    <% end %>
+                    <% if prices.size > 1 %>
+                      <span class="variant-label"><%= variant_label %></span>
+                    <% end %>
                   </span>
+                  <span class="price-value"><%= display_price %></span>
+                  <% unless variation.empty? || variation == 'S/C' %>
+                    <span class="variation-chip <%= variation_class %>">
+                      <%= variation %>
+                    </span>
+                  <% end %>
                 <% end %>
               <% end %>
             <% end %>
@@ -73,6 +100,7 @@
         </div>
       <% end %>
     </div>
+    <% end %>
 
     <div style="margin-top: var(--space-xl); text-align: center;">
       <%= link_to "← Voltar ao checker", root_path, class: "button secondary" %>
