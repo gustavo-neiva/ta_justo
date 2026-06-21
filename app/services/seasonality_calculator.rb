@@ -54,7 +54,7 @@ class SeasonalityCalculator
   private
 
   def each_value_with_date
-    rows.find_each do |price|
+    rows.each do |price|
       value = value_for(price)
       next unless value&.positive?
       yield price.bulletin.price_date.month, value
@@ -64,9 +64,9 @@ class SeasonalityCalculator
   def rows
     case @variant.pricing_mode
     when "per_dozen"
-      @variant.prices.where(original_unit: "dozen").where.not(modal: nil).joins(:bulletin)
+      @variant.prices.where(original_unit: "dozen").where.not(modal: nil).includes(:bulletin).joins(:bulletin)
     else
-      @variant.prices.where.not(price_per_kg: nil).joins(:bulletin)
+      @variant.prices.where.not(price_per_kg: nil).includes(:bulletin).joins(:bulletin)
     end
   end
 

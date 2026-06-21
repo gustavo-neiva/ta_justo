@@ -33,21 +33,40 @@ class Variant < ApplicationRecord
   # Representative rows over time (oldest → newest), optionally windowed.
   # The basis for percentile / market-timing series. One row per bulletin,
   # each chosen by the same smallest-retail-pack rule.
+  # Memoized per months-key so repeated calls within one request are free.
   def representative_series(months: nil)
-    scope = prices.joins(:bulletin)
-    scope = scope.where("bulletins.price_date >= ?", months.months.ago) if months
-    scope = scope.where(original_unit: "dozen") if pricing_mode == "per_dozen"
-    scope = scope.where.not(price_per_kg: nil) unless pricing_mode == "per_dozen"
+    @representative_series ||= {}
+    @representative_series[months] ||= begin
+      scope = prices.includes(:bulletin).joins(:bulletin)
+      scope = scope.where("bulletins.price_date >= ?", months.months.ago) if months
+      if pricing_mode == "per_dozen"
+        scope = scope.where(original_unit: "dozen")
+      else
+        scope = scope.where.not(price_per_kg: nil)
+      end
 
-    bulletin_ids = scope.distinct.order("bulletins.price_date ASC").pluck("bulletins.id")
-    Bulletin.where(id: bulletin_ids).order(:price_date).filter_map do |b|
-      representative_price(bulletin: b)
+      scope.order("bulletins.price_date ASC")
+           .group_by(&:bulletin_id)
+           .map { |_bulletin_id, rows| pick_representative(rows) }
+           .compact
+           .sort_by { |price| price.bulletin.price_date }
     end
   end
 
   # Most recent representative row (latest bulletin with a usable price).
+  # Finds only the latest relevant bulletin directly — avoids loading the full series.
   def latest_price
-    representative_series.last
+    scope = prices.joins(:bulletin)
+    if pricing_mode == "per_dozen"
+      scope = scope.where(original_unit: "dozen")
+    else
+      scope = scope.where.not(price_per_kg: nil)
+    end
+
+    latest_bulletin_id = scope.order("bulletins.price_date DESC").limit(1).pick("prices.bulletin_id")
+    return nil unless latest_bulletin_id
+
+    representative_price(bulletin: Bulletin.find(latest_bulletin_id))
   end
 
   def latest_price_per_kg
@@ -55,6 +74,15 @@ class Variant < ApplicationRecord
   end
 
   private
+
+  def pick_representative(rows)
+    if pricing_mode == "per_dozen"
+      rows.select { |p| p.original_unit == "dozen" }.min_by(&:id)
+    else
+      rows.select { |p| p.price_per_kg }
+          .min_by { |p| [ PackSize.kg(p.raw_unit) || Float::INFINITY, p.id ] }
+    end
+  end
 
   # per_dozen rows are all the same box ("Cx 30 dz"); pack-size selection
   # does not apply, so we just take a stable single row.

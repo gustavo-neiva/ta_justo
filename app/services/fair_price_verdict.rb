@@ -168,7 +168,7 @@ class FairPriceVerdict
   end
 
   def latest_representative_bulletin
-    @variant.representative_series.last&.bulletin
+    @variant.latest_price&.bulletin
   end
 
   def compute_market_timing

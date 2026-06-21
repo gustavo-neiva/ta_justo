@@ -26,9 +26,9 @@ class ChartSeries
   def base_scope
     case @variant.pricing_mode
     when "per_dozen"
-      @variant.prices.where(original_unit: "dozen").where.not(modal: nil).joins(:bulletin)
+      @variant.prices.where(original_unit: "dozen").where.not(modal: nil).includes(:bulletin).joins(:bulletin)
     else
-      @variant.prices.where.not(price_per_kg: nil).joins(:bulletin)
+      @variant.prices.where.not(price_per_kg: nil).includes(:bulletin).joins(:bulletin)
     end
   end
 
