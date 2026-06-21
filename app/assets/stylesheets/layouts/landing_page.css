@@ -1,5 +1,46 @@
 /* Landing Page Layout Styles */
 
+/* Main wrapper applied to <main> via content_for :page_class */
+.landing-page {
+  min-height: calc(100vh - 57px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl) var(--space-md);
+  background: var(--color-bg);
+}
+
+/* Checker form card — scoped to landing page */
+.landing-page .checker-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0;
+  padding: 0;
+}
+
+.landing-page .checker-container .page-header {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.landing-page .checker-container .page-header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -1px;
+  margin-bottom: var(--space-xs);
+}
+
+.landing-page .checker-container .page-header .subtitle {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.landing-page .checker-form .button {
+  margin-top: var(--space-xs);
+}
+
 /* ========== HERO SECTION ========== */
 
 .landing-hero {

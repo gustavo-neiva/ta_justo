@@ -148,6 +148,34 @@
   color: var(--color-text-secondary);
 }
 
+.price-list-header {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--space-md);
+  padding: var(--space-xs) var(--space-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-xs);
+}
+
+.col-price,
+.col-variation {
+  min-width: 90px;
+  text-align: right;
+}
+
+.variant-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
 /* Product detail page */
 .product-header-stats {
   display: grid;

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_21_011019) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_21_061533) do
   create_table "bulletins", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "market", default: "ceasa-rj", null: false
@@ -33,6 +33,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_21_011019) do
     t.integer "section"
     t.datetime "updated_at", null: false
     t.index ["market", "section", "raw_product", "raw_tipo"], name: "idx_pending_unique", unique: true
+  end
+
+  create_table "price_indices", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.decimal "index_level", precision: 10, scale: 2
+    t.string "index_name", null: false
+    t.date "reference_month", null: false
+    t.datetime "updated_at", null: false
+    t.index ["index_name", "reference_month"], name: "index_price_indices_on_index_name_and_reference_month", unique: true
   end
 
   create_table "prices", force: :cascade do |t|

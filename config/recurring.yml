@@ -25,3 +25,9 @@ production:
     class: BackfillCeasaRioJob
     queue: default
     schedule: every Sunday at 4am America/Sao_Paulo
+  
+  # Refresh price indices (IPCA + INPC) every Sunday at 5am
+  refresh_price_indices:
+    class: RefreshPriceIndicesJob
+    queue: default
+    schedule: every Sunday at 5am America/Sao_Paulo

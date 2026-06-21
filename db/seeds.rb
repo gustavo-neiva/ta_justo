@@ -14,8 +14,12 @@ load Rails.root.join('db/seeds/products.rb')
 # 3. ProductMaps (248 CEASA-RJ tuples → canonical products)
 load Rails.root.join('db/seeds/product_maps.rb')
 
+# 4. Price Indices (IPCA + INPC full history from BCB SGS API)
+load Rails.root.join('db/seeds/price_indices.rb')
+
 puts "\n✅ Seeding complete!"
 puts "   Products: #{Product.count}"
 puts "   Variants: #{Variant.count}"
 puts "   ProductMaps: #{ProductMap.count}"
 puts "   Core basket: #{CoreBasket::SLUGS.count} products"
+puts "   Price indices: #{PriceIndex.count} (IPCA: #{PriceIndex.where(index_name: 'ipca').count}, INPC: #{PriceIndex.where(index_name: 'inpc').count})"

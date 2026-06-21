@@ -1,0 +1,193 @@
+require "test_helper"
+require "net/http"
+
+class PriceIndexServiceTest < ActiveSupport::TestCase
+  # Test data matching BCB SGS API response shape
+  IPCA_MOCK_RESPONSE = [
+    { "data" => "01/01/2024", "valor" => 6642.78 },
+    { "data" => "01/02/2024", "valor" => 6654.32 },
+    { "data" => "01/03/2024", "valor" => 6670.15 }
+  ].to_json
+
+  INPC_MOCK_RESPONSE = [
+    { "data" => "01/01/2024", "valor" => 6234.56 },
+    { "data" => "01/02/2024", "valor" => 6245.89 },
+    { "data" => "01/03/2024", "valor" => 6251.23 }
+  ].to_json
+
+  setup do
+    @fetcher = PriceIndexService.new
+  end
+
+  test "#fetch_ipc returns parsed data for IPCA series" do
+    mock_http_response(200, IPCA_MOCK_RESPONSE)
+
+    result = @fetcher.fetch_ipc
+
+    assert_equal 3, result.size
+    assert_equal Date.new(2024, 1, 1), result.first[:reference_month]
+    assert_equal BigDecimal("6642.78"), result.first[:index_level]
+    assert_equal Date.new(2024, 3, 1), result.last[:reference_month]
+    assert_equal BigDecimal("6670.15"), result.last[:index_level]
+  end
+
+  test "#fetch_inpc returns parsed data for INPC series" do
+    mock_http_response(200, INPC_MOCK_RESPONSE)
+
+    result = @fetcher.fetch_inpc
+
+    assert_equal 3, result.size
+    assert_equal Date.new(2024, 1, 1), result.first[:reference_month]
+    assert_equal BigDecimal("6234.56"), result.first[:index_level]
+    assert_equal Date.new(2024, 3, 1), result.last[:reference_month]
+    assert_equal BigDecimal("6251.23"), result.last[:index_level]
+  end
+
+  test "#fetch_series handles series 1737 (IPCA) correctly" do
+    mock_http_response(200, IPCA_MOCK_RESPONSE)
+
+    result = @fetcher.fetch_series(1737)
+
+    assert_equal 3, result.size
+    assert_equal Date.new(2024, 1, 1), result.first[:reference_month]
+    assert_equal BigDecimal("6642.78"), result.first[:index_level]
+  end
+
+  test "#fetch_series handles series 188 (INPC) correctly" do
+    mock_http_response(200, INPC_MOCK_RESPONSE)
+
+    result = @fetcher.fetch_series(188)
+
+    assert_equal 3, result.size
+    assert_equal Date.new(2024, 1, 1), result.first[:reference_month]
+    assert_equal BigDecimal("6234.56"), result.first[:index_level]
+  end
+
+  test "#fetch_series parses DD/MM/YYYY dates correctly" do
+    mock_response = [
+      { "data" => "01/06/2025", "valor" => 7312.97 },
+      { "data" => "01/05/2026", "valor" => 7640.15 }
+    ].to_json
+    mock_http_response(200, mock_response)
+
+    result = @fetcher.fetch_series(1737)
+
+    assert_equal 2, result.size
+    assert_equal Date.new(2025, 6, 1), result.first[:reference_month]
+    assert_equal Date.new(2026, 5, 1), result.last[:reference_month]
+    assert_equal BigDecimal("7312.97"), result.first[:index_level]
+    assert_equal BigDecimal("7640.15"), result.last[:index_level]
+  end
+
+  test "#fetch_series converts valor to BigDecimal for precision" do
+    mock_response = [
+      { "data" => "01/01/2024", "valor" => 6642.789 }
+    ].to_json
+    mock_http_response(200, mock_response)
+
+    result = @fetcher.fetch_series(1737)
+
+    assert_equal 1, result.size
+    assert_equal BigDecimal("6642.789"), result.first[:index_level]
+    assert_instance_of BigDecimal, result.first[:index_level]
+  end
+
+  test "#fetch_series raises error on HTTP error" do
+    mock_http_response(500, "Internal Server Error")
+
+    error = assert_raises(PriceIndexService::APIError) do
+      @fetcher.fetch_series(1737)
+    end
+
+    assert_match(/500/, error.message)
+  end
+
+  test "#fetch_series raises error on empty response" do
+    mock_http_response(200, [].to_json)
+
+    error = assert_raises(PriceIndexService::APIError) do
+      @fetcher.fetch_series(1737)
+    end
+
+    assert_match(/No data returned/, error.message)
+  end
+
+  test "#fetch_series raises error on invalid JSON" do
+    mock_http_response(200, "invalid json")
+
+    error = assert_raises(PriceIndexService::APIError) do
+      @fetcher.fetch_series(1737)
+    end
+
+    assert_match(/Failed to parse JSON/, error.message)
+  end
+
+  test "#fetch_series adds bot User-Agent header" do
+    mock_http_response_with_header_check(200, IPCA_MOCK_RESPONSE)
+
+    result = @fetcher.fetch_series(1737)
+
+    assert_equal 3, result.size
+  end
+
+  test "#fetch_series handles decimal comma in valor (Brazilian format)" do
+    # Note: BCB SGS API returns valor as a number in JSON, not string with comma
+    # This test ensures we handle numeric values correctly
+    mock_response = [
+      { "data" => "01/01/2024", "valor" => 6642.78 }
+    ].to_json
+    mock_http_response(200, mock_response)
+
+    result = @fetcher.fetch_series(1737)
+
+    assert_equal BigDecimal("6642.78"), result.first[:index_level]
+  end
+
+  private
+
+  def mock_http_response(code, body)
+    uri = URI("https://api.bcb.gov.br/dados/serie/bcdata.sgs.1737/dados?formato=json")
+
+    http_double = Minitest::Mock.new
+    http_double.expect(:use_ssl=, nil, [true])
+    http_double.expect(:open_timeout=, nil, [10])
+    http_double.expect(:read_timeout=, nil, [30])
+
+    get_double = Minitest::Mock.new
+    get_double.expect(:add_field, nil, [String, String])
+
+    response = Net::HTTPResponse.new(1.1, code.to_s, "OK")
+    response.instance_variable_set(:@body, body)
+    response.instance_variable_set(:@read, true)
+
+    http_double.expect(:request, response, [get_double])
+
+    Net::HTTP.stub(:new, "api.bcb.gov.br", 443) { http_double }
+    Net::HTTP::Get.stub(:new, uri) { get_double }
+
+    result = @fetcher.fetch_series(1737)
+  end
+
+  def mock_http_response_with_header_check(code, body)
+    uri = URI("https://api.bcb.gov.br/dados/serie/bcdata.sgs.1737/dados?formato=json")
+
+    http_double = Minitest::Mock.new
+    http_double.expect(:use_ssl=, nil, [true])
+    http_double.expect(:open_timeout=, nil, [10])
+    http_double.expect(:read_timeout=, nil, [30])
+
+    get_double = Minitest::Mock.new
+    get_double.expect(:add_field, nil, ["User-Agent", "TáJusto/1.0.0 (https://github.com/gustavo-neiva/ta_justo)"])
+
+    response = Net::HTTPResponse.new(1.1, code.to_s, "OK")
+    response.instance_variable_set(:@body, body)
+    response.instance_variable_set(:@read, true)
+
+    http_double.expect(:request, response, [get_double])
+
+    Net::HTTP.stub(:new, "api.bcb.gov.br", 443) { http_double }
+    Net::HTTP::Get.stub(:new, uri) { get_double }
+
+    result = @fetcher.fetch_series(1737)
+  end
+end

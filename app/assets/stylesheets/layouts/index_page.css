@@ -3,10 +3,13 @@
 .index-page {
   max-width: 960px;
   margin: 0 auto;
-  padding: 24px 16px 60px;
+  padding: 32px 16px 64px;
 }
 
 .index-page h1 { font-size: 1.5rem; margin-bottom: 16px; }
+
+/* page-header inside index-page (shared with detail-page via detail_page.css) */
+.index-page .page-header { margin-bottom: var(--space-xl); }
 
 .index-list { list-style: none; columns: 1; }
 

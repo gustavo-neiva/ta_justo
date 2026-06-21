@@ -1,5 +1,51 @@
 /* AgroClaro — Button Components */
 
+/* .button aliases used by ta_justo views */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  min-height: 44px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  line-height: 1;
+}
+
+.button:hover { text-decoration: none; }
+
+.button.primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.button.primary:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary-light);
+}
+
+.button.secondary {
+  background: transparent;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.button.secondary:hover {
+  background: rgba(3, 89, 37, 0.06);
+}
+
+.button.full-width {
+  width: 100%;
+  justify-content: center;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

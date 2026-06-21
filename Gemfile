@@ -56,6 +56,7 @@ group :development, :test do
 
   # Ruby linting
   gem "rubocop", require: false
+  gem "rubocop-rails-omakase", require: false
 end
 
 group :development do
@@ -68,3 +69,5 @@ end
 #   gem "capybara"
 #   gem "selenium-webdriver"
 # end
+
+gem "webmock", "~> 3.26", :groups => [:development, :test]
