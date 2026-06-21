@@ -35,7 +35,7 @@ module CeasaRio
     def parse_month_links(html)
       months = %w[Janeiro Fevereiro Março Abril Maio Junho Julho Agosto Setembro Outubro Novembro Dezembro]
       html.css("a").each_with_object({}) do |a, h|
-        text = a.text.strip.gsub(/\p{Space}+/, " ")
+        text = a.text.gsub(/\p{Space}+/, " ").strip
         next unless months.any? { |m| text =~ /\A#{m}\z/i }
         href = a["href"]
         h[text] = href.start_with?("http") ? href : URI.join(HUB, href).to_s

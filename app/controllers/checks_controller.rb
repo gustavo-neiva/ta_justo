@@ -4,13 +4,29 @@
 class ChecksController < ApplicationController
   def show
     load_core_basket_products
-    
+    load_unit_label_for_selected_product
+
     if params[:product].present? && params[:price].present?
       run_verdict
     end
   end
 
   private
+
+  def load_unit_label_for_selected_product
+    return unless params[:product].present?
+    product = Product.find_by(slug: params[:product])
+    return unless product&.default_variant
+    @unit_label = unit_label_for(product.default_variant)
+  end
+
+  def unit_label_for(variant)
+    case variant.pricing_mode
+    when "per_dozen" then "dúzia"
+    when "per_unit"  then "unidade"
+    else                  "kg"
+    end
+  end
 
   def load_core_basket_products
     # Load the checkable products for the dropdown
@@ -33,15 +49,16 @@ class ChecksController < ApplicationController
       return
     end
 
-    @paid_per_kg = params[:price].to_f
-    
-    if @paid_per_kg <= 0
+    @unit_label = unit_label_for(@variant)
+    @paid_amount = params[:price].to_f
+
+    if @paid_amount <= 0
       @error = "Preço inválido"
       return
     end
 
     begin
-      verdict_service = FairPriceVerdict.new(variant: @variant, paid_per_kg: @paid_per_kg)
+      verdict_service = FairPriceVerdict.new(variant: @variant, paid_amount: @paid_amount)
       @result = verdict_service.call
     rescue => e
       @error = e.message

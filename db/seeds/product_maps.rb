@@ -30,7 +30,7 @@ map_ceasa(1, "BANANA", "DA TERRA", "banana", "Da Terra")
 map_ceasa(1, "BANANA", "FIGO", "banana", "Figo")
 map_ceasa(1, "BANANA", "MAÇÃ Extra", "banana", "Maçã Extra")
 map_ceasa(1, "BANANA", "NANICA/D'ÁGUA Extra", "banana", "Nanica/D'Água Extra")
-map_ceasa(1, "BANANA", "NANICA/D'ÁGUA Extra", "banana", "Nanica/D'Água Extra")  # curly apostrophe variant
+map_ceasa(1, "BANANA", "NANICA/D’ÁGUA Extra", "banana", "Nanica/D’Água Extra")  # curly apostrophe (U+2019) as emitted by PDF
 map_ceasa(1, "BANANA", "OURO", "banana", "Ouro")
 map_ceasa(1, "BANANA", "PACOVAN", "banana", "Pacovan")
 map_ceasa(1, "BANANA", "PRATA Extra", "banana", "Prata Extra")
@@ -210,7 +210,9 @@ map_ceasa(5, "RABANETE", "", "rabanete", "Comum")
 
 # SECTION 6 — Ovos (3 tuples)
 map_ceasa(6, "OVO", "BRANCO Extra", "ovo", "Branco Extra")
+map_ceasa(6, "OVO", "BRANCO", "ovo", "Branco Extra")        # PDF omits "Extra" in raw_tipo
 map_ceasa(6, "OVO", "VERMELHO Extra", "ovo", "Vermelho Extra")
+map_ceasa(6, "OVO", "VERMELHO", "ovo", "Vermelho Extra")      # PDF omits "Extra" in raw_tipo
 map_ceasa(6, "OVOS", "DE CODORNA", "ovo-codorna", "De Codorna")
 
 # SECTION 7 — Pescado (67 tuples)

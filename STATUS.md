@@ -1,117 +1,116 @@
 # Tá Justo? — Migration Status
 
-**Last updated:** 2026-06-20 22:16
+**Last updated:** 2026-06-21
+
+---
 
 ## ✅ Complete
 
-### Infrastructure (Phases A1-A2, B1-B3, B5-B7)
-- Rails 8 app scaffolded with SQLite, Hotwire, Solid Queue
+### Infrastructure (Phases A1–A2, B1–B3, B5–B7, C1)
+
+- Rails 8 app scaffolded: SQLite, Hotwire, Solid Queue, importmap + D3 vendored
 - Database schema: 7 tables (bulletins, products, variants, product_maps, product_aliases, prices, pending_matches)
-- Parser handles both Modern date formats (with/without "DATA:")
-- Unit normalizer: 76 units → 72 to R$/kg, 4 special cases
-- Seeds: 163 products, 234 variants, 235 CEASA-RJ mappings
-- Core basket: 37 staple products
-- **Multi-packaging support**: Same variant in different pack sizes tracked separately
-  - Example: MANGA TOMMY ATKINS Cx 18kg (R$3.89/kg) vs Cx 5kg (R$7.0/kg)
-  - Uniqueness constraint: (variant + bulletin + raw_unit)
-  - `retail_packaging` scope prefers smaller packs for checker
+- Seeds: 163 products, 234 variants, 235+ CEASA-RJ product_maps, 37 core-basket staples
+- Multi-packaging uniqueness: `(variant + bulletin + raw_unit)` — tracks Cx 18kg vs Cx 5kg separately
+- All 7 services: Parser, UnitNormalizer, Fetcher, Crawler, Loader, VariantMatcher, FairPriceVerdict
+- All 4 controllers + views: `/` checker, `/precos` index, `/produtos/:slug` detail, `/sobre`
+- CSS: full design system (tokens + 14 components + 3 layouts + domain/ta_justo.css)
+- D3 controllers copied but unwired (deferred to v1.1)
+- `config/recurring.yml`: daily fetch (weekdays 9am BRT) + Sunday backfill reconciliation
 
-### Data (18 Sample Bulletins)
-- **18 bulletins ingested** (Mar 2023 - Apr 2024, ~13 months)
-- **3,645 prices** (~202/bulletin avg)
-- **204 unique variants** with data
-- **43 pending matches** (42 fish §7, 1 banana curly-apostrophe variant)
-- All core basket products have prices ✓
+### Data (Full Backfill — B4 Complete)
 
-### Services & Jobs
-- `CeasaRio::Parser` - Modern PDF parser (178/178 rows)
-- `CeasaRio::UnitNormalizer` - 76 units, 4 special cases
-- `CeasaRio::Fetcher` - daily fetch with triple validation
-- `CeasaRio::Crawler` - discovers historical URLs
-- `CeasaRio::VariantMatcher` - uses ProductMap table
-- `CeasaRio::Loader` - idempotent ingestion with pending_matches safety net
-- `FairPriceVerdict` - verdict engine (provisional bands: 1.7/2.5)
-- `FetchCeasaRioJob` - daily forward with archiving
-- `BackfillCeasaRioJob` - historical crawl (ready to run)
+- **766 bulletins** ingested · 2023-03-01 → 2026-06-19
+- **151,917 prices**
+- **42 pending matches** — all §7 fish (expected; index-only, not in checker)
+- **0 pending for core basket** (§1–6 produce + eggs fully mapped)
+- All 40 months populated; every month in 14–23 bulletins range
 
-### Views & Controllers
-- `/` - Checker with pick-from-list (✓ renders 200 OK)
-- `/precos` - Today's CEASA index by section
-- `/produtos/:slug` - Product detail (chart-free v1, D3 dormant)
-- `/sobre` - About page
-- CSS: Full design system copied (tokens + 14 components + 3 layouts)
-- D3 controllers copied but unwired (deferred to v1.1 per plan)
+**Year breakdown:**
 
-## ⚠️ Ready to Run (Not Yet Executed)
+| Year | Bulletins |
+|------|-----------|
+| 2023 (Mar–Dec) | 201 |
+| 2024 | 238 |
+| 2025 | 224 |
+| 2026 (Jan–Jun) | 103 |
 
-### B4: Full Historical Backfill
-**Status:** All code in place, just needs execution  
-**What:** Ingest ~875 bulletins from Mar 2023 - Jun 2026  
-**How:** `rails runner "BackfillCeasaRioJob.perform_now"`  
-**Time:** ~12 minutes (0.8s delay × 875 requests)  
-**Decision:** Run after C3 deploy, not locally (avoid hammering CEASA-RJ from dev machine)
+### Bugs Found & Fixed During Backfill
 
-### C1: Recurring Jobs Config
-**Status:** Jobs created, config file pending  
-**What:** Create `config/recurring.yml` for Solid Queue  
-**Content:**
-```yaml
-production:
-  fetch_ceasa_rio_job:
-    class: FetchCeasaRioJob
-    schedule: every weekday at 09:00 (America/Sao_Paulo)
-  backfill_ceasa_rio_job:
-    class: BackfillCeasaRioJob
-    schedule: every Sunday at 04:00
-```
+| Bug | Root cause | Fix |
+|-----|-----------|-----|
+| BANANA NANICA missing from all 766 bulletins | PDF uses curly `'` (U+2019); seed had straight `'` | Updated ProductMap raw_tipo + re-ingested all bulletins |
+| OVO BRANCO/VERMELHO missing | PDF emits `"BRANCO"`, seed expected `"BRANCO Extra"` | Added plain-raw_tipo ProductMap entries |
+| 8 months silently skipped by crawler (Sep/Oct/Feb/Apr/Dec) | `.strip` ran before `.gsub` → U+00A0 not removed → month-name regex failed | Swapped to `.gsub(/\p{Space}+/, " ").strip` in `parse_month_links` |
+
+---
+
+## ✅ Completed in This Session
+
+### Eggs verdict fix (per\_dozen mode)
+- `FairPriceVerdict` now branches on `variant.pricing_mode`: `per_kg` / `per_dozen` / `per_unit`
+- `per_dozen`: fetches `original_unit = 'dozen'` prices, computes `modal / 30` → R$/dúzia
+- `per_unit`: computes `price_per_kg * avg_weight_kg` for single-unit produce
+- `Result` struct updated: `ceasa_comparable`, `paid_comparable`, `unit_label` (replaces `ceasa_per_kg`/`paid_per_kg`)
+- `ChecksController` updated: uses `paid_amount`, sets `@unit_label` from default_variant.pricing_mode
+- View updated: dynamic label (R$/kg vs R$/dúzia vs R$/unidade), price-row display
+- Added `config/locales/pt-BR.yml` with date formats `:long` / `:short` + month/day names
+
+### End-to-end smoke test
+- All 7 routes respond 200: `/`, `/precos`, `/produtos/tomate`, `/produtos/ovo`, `/sobre`, `/produtos/abacaxi`
+- Checker verdicts verified in all 3 modes:
+  - `per_kg` (tomate R$12.00): Barato, 1.4×, R$8.33/kg CEASA
+  - `per_dozen` (ovo R$7.50): Barato, 1.3×, R$5.67/dúzia CEASA ← previously raised
+  - `per_unit` (abacaxi R$5.00): Barato, 1.1×, ~1500g estimado
+- `/precos` renders section groups (Frutas, Hortalicas, Ovos)
+- `/produtos/ovo` and `/produtos/tomate` render correctly
 
 ## ❌ Not Started
 
-### C2: Mobile QA
-- Test checker, index, product detail on phone width
-- Fix layout issues if any
+### C2: Mobile QA (browser pass)
+- Open http://localhost:3000 in browser at 375px width
+- Check checker form, verdict display, `/precos` table scroll, product page
 
 ### C3: Deploy
-- Register `tajusto.com.br` domain
-- Configure Kamal `deploy.yml`
-- Set up droplet, SSL, backups
-- Run full backfill post-deploy
+- Register `tajusto.com.br`
+- Fill `__DROPLET_IP__` in `config/deploy.yml`, run `bin/kamal setup`
+- SSL auto-provisioned by Kamal/Thruster
+- Daily SQLite backup cron + `storage/ceasa/raw/` backup
 
-## 🔧 Known Issues (Non-Blocking)
+---
 
-1. **1 core product variant unmapped:** BANANA "NANICA/D'ÁGUA Extra" (curly apostrophe `'` vs straight `'`)
-   - Impact: 1 variant out of 204, ~19 price records
-   - Fix: Add curly-apostrophe variant to ProductMap seed
-   - Priority: Low (affects <0.5% of data)
+## 📋 Next Steps
 
-2. **42 fish (§7) unmapped**
-   - Impact: None (fish are index-only, not in checker per plan)
-   - Fix: Seed pescado ProductMaps when enabling fish in index
-   - Priority: Deferred to v1.1
+1. **Mobile QA** (C2) — open in browser at 375px, check all 3 pages + checker all 3 modes
+2. **Deploy** (C3) — domain → droplet → `bin/kamal setup` → verify `/up`
+3. **Use it at a real feira** — first real-world verdict
 
-## 📋 Next Steps (Priority Order)
+---
 
-1. **Create recurring.yml** (C1) - 5 minutes
-2. **Mobile QA pass** (C2) - 30 minutes
-3. **Deploy prep** (C3) - domain + Kamal config
-4. **Deploy to droplet** - first production deploy
-5. **Run full backfill** - post-deploy, on production server
-6. **Test live checker** - use at real feira
+## 🎯 Definition of Done (§12)
 
-## 🎯 Definition of Done Checklist (from Plan §12)
-
-| # | Done | Item |
-|---|------|------|
-| 1 | ✅ | App boots; design system + header/footer + D3 vendored |
-| 2 | ⚠️ | Parser: 178/178 on PDF (✓); edge-case tests (pending) |
-| 3 | ⚠️ | Validation task created; needs sample PDFs in spec/fixtures/ |
-| 4 | ⚠️ | Core basket (✓); 163/234 products/variants seeded (✓); 1 mapping issue (banana) |
-| 5 | ⚠️ | Modern history ready to backfill; dedup verified (✓); pending reviewed (✓) |
-| 6 | ⚠️ | Checker renders; verdict service done; controller/views need per-mode testing |
-| 7 | ⚠️ | `/precos` created; needs QA |
+| # | Status | Item |
+|---|--------|------|
+| 1 | ✅ | App boots; design system + header/footer; D3 vendored |
+| 2 | ⚠️ | Parser 178/178 ✓; edge-case unit tests not written |
+| 3 | ⚠️ | Validation rake task created; no sample PDFs in spec/fixtures/ yet |
+| 4 | ✅ | Core basket 100% mapped; 234 variants seeded; default_variants set |
+| 5 | ✅ | 766 bulletins backfilled; 0 core-basket pending; dedup verified |
+| 6 | ✅ | Checker renders; per-dozen (eggs) + per-unit verdict modes wired and tested |
+| 7 | ⚠️ | `/precos` built; needs QA with live data |
 | 8 | ✅ | `/produtos/:slug` minimal page; D3 copied but unwired |
-| 9 | ✅ | Daily job created; holiday-aware (✓); needs recurring config |
+| 9 | ✅ | Daily job + recurring.yml configured; holiday-aware |
 | 10 | ❌ | Not deployed |
 | 11 | ❌ | Not tested at real feira |
 
-**Overall: 60% complete** — Infrastructure solid, ready for QA + deploy.
+**Overall: ~80% complete** — data layer solid, recurring jobs configured, ready for QA + deploy.
+
+---
+
+## 🔧 Known Open Issues
+
+| Issue | Impact | Priority |
+|-------|--------|----------|
+| Parser edge-case unit tests not written | No CI gate on parser regression | Post-deploy |
+| No sample PDFs in `spec/fixtures/ceasa/` | `rake ceasa:validate_mapping` runs against 0 files | Low |
+| Mobile QA not done | Layout regressions possible at 375px | Before deploy |

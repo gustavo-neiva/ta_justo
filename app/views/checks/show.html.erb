@@ -21,7 +21,8 @@
     </div>
 
     <div class="form-group">
-      <label for="price">Preço que você pagou (R$ por kg)</label>
+      <% label_unit = @unit_label || "kg" %>
+      <label for="price">Preço que você pagou (R$ por <%= label_unit %>)</label>
       <input 
         type="number" 
         step="0.01" 
@@ -59,7 +60,15 @@
       </div>
 
       <h3><%= @product.name %> — <%= @variant.name %></h3>
-      
+
+      <div class="verdict-price-row" style="margin-bottom: var(--space-sm);">
+        <span>Você pagou: <strong>R$ <%= "%.2f" % @result.paid_comparable %>/<%= @result.unit_label %></strong></span>
+        &nbsp;·&nbsp;
+        <span>CEASA: <strong>R$ <%= "%.2f" % @result.ceasa_comparable %>/<%= @result.unit_label %></strong></span>
+        &nbsp;·&nbsp;
+        <span>Razão: <strong><%= "%.1f" % @result.ratio %>×</strong></span>
+      </div>
+
       <div class="verdict-explanation">
         <%= @result.explanation %>
       </div>
