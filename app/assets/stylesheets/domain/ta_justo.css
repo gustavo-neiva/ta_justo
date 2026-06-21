@@ -234,6 +234,144 @@
   font-weight: 600;
 }
 
+/* ── MarketTiming quiet line ──────────────────────────────────────────────── */
+
+.timing-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin: var(--space-sm) 0 var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.timing-bucket {
+  font-weight: var(--font-semibold);
+}
+
+.timing-bucket--cheap     { color: var(--color-success); }
+.timing-bucket--normal    { color: var(--color-text-secondary); }
+.timing-bucket--expensive { color: var(--color-warning-dark); }
+
+.timing-detail {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* ── Two-axis verdict layout ──────────────────────────────────────────────── */
+
+.verdict-axes {
+  display: flex;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-bottom: var(--space-md);
+}
+
+.verdict-axis {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.verdict-axis-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* MarketTiming badge (quiet — smaller, neutral border) */
+.timing-badge {
+  display: inline-block;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-semibold);
+  font-size: var(--font-size-base);
+  border: 2px solid var(--color-border);
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+}
+
+.timing-badge--cheap {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.timing-badge--expensive {
+  border-color: var(--color-warning-dark);
+  color: var(--color-warning-dark);
+}
+
+/* Synthesis callout */
+.verdict-synthesis {
+  margin: var(--space-md) 0;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-background-tertiary);
+  border-left: 3px solid var(--color-primary);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* ── Raw wholesale data table ─────────────────────────────────────────────── */
+
+.raw-data-details {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-white);
+}
+
+.raw-data-table-wrapper {
+  overflow-x: auto;
+}
+
+.raw-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.raw-data-table th {
+  text-align: left;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.raw-data-table th.num,
+.raw-data-table td.num {
+  text-align: right;
+}
+
+.raw-data-table td {
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text);
+}
+
+.raw-data-row--representative td {
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  font-weight: var(--font-medium);
+}
+
+.raw-data-badge {
+  display: inline-block;
+  margin-left: var(--space-xs);
+  padding: 1px var(--space-xs);
+  font-size: var(--font-size-xs);
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-semibold);
+  vertical-align: middle;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .price-row {

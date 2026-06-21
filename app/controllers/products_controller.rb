@@ -44,6 +44,16 @@ class ProductsController < ApplicationController
     @chart_data    = ChartSeries.new(@variant, period: @period).points
     @seasonal_data = SeasonalityCalculator.new(@variant).monthly_curve
 
+    # Two-axis plan: MarketTiming (paid-independent — always shown on detail page)
+    @market_timing = MarketTiming.new(variant: @variant).compute
+
+    # Raw wholesale data for the transparent source section (plan §3.7)
+    @raw_prices = @variant.prices
+                          .where(bulletin: @latest_price.bulletin)
+                          .order(:id)
+                          .to_a
+    @representative_price_id = @latest_price.id
+
     run_inline_verdict
   end
 

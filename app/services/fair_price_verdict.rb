@@ -1,18 +1,40 @@
 class FairPriceVerdict
-  # ⚠️ PROVISIONAL bands — a GUESS, not yet validated against real feira data (§3.2).
-  # Markup of retail (feira) over CEASA atacado. Tunable.
-  BARATO_MAX  = 1.7   # < 1.7× atacado → Barato
-  MEDIA_MAX   = 2.5   # 1.7–2.5× → Na média  ; > 2.5× → Caro
-  STALE_DAYS  = 10    # Days before showing "desatualizado" badge
+  # ⚠️ Bands live on Markup VO (single source of truth). Forwarded here for
+  # the explanation strings and for callers that reference them via this class.
+  BARATO_MAX  = Markup::BARATO_MAX
+  MEDIA_MAX   = Markup::MEDIA_MAX
+  STALE_DAYS  = 10
 
   # Eggs: CEASA sells "Cx 30 dz" — modal is per-box, so per-dozen = modal / 30.
   DOZENS_PER_BOX = 30
+
+  # Synthesis table: fires only on high-signal disagreement cells (plan §3.8).
+  # Key: [markup_bucket, timing_bucket]. Silent cells are absent.
+  SYNTHESIS = {
+    %i[barato expensive] => {
+      key:      :barato_epoca_cara,
+      sentence: "Bom preço do vendedor, mas o produto está caro pra esta época do ano — pode ficar mais barato."
+    },
+    %i[media cheap] => {
+      key:      :media_epoca_barata,
+      sentence: "Preço ok, e o produto está barato agora — bom momento pra comprar."
+    },
+    %i[media expensive] => {
+      key:      :media_epoca_cara,
+      sentence: "Margem ok, mas é época cara pra este produto."
+    },
+    %i[caro cheap] => {
+      key:      :caro_epoca_barata,
+      sentence: "Vendedor caro num momento em que o produto está barato — considere outros fornecedores."
+    }
+  }.freeze
 
   Result = Struct.new(
     :verdict, :ratio,
     :ceasa_comparable, :paid_comparable, :unit_label,
     :percentile_12m, :seasonality_note, :explanation,
     :ceasa_date, :stale,
+    :markup, :market_timing, :synthesis_key, :synthesis_sentence,
     keyword_init: true
   )
 
@@ -44,15 +66,20 @@ class FairPriceVerdict
     stale      = stale?(ceasa_date)
     ratio      = @paid_amount / ceasa
     pct        = percentile_12m(ceasa, :per_kg)
-    verdict    = classify(ratio)
+    markup     = Markup.new(ratio: ratio)
+    timing     = compute_market_timing
+    synthesis  = synthesize(markup.bucket, timing)
 
     Result.new(
-      verdict: verdict, ratio: ratio,
+      verdict: markup.bucket, ratio: ratio,
       ceasa_comparable: ceasa, paid_comparable: @paid_amount,
       unit_label: "kg",
       percentile_12m: pct, seasonality_note: SeasonalityCalculator.new(@variant).note,
-      explanation: explanation_per_kg(ratio, ceasa, pct, verdict),
-      ceasa_date: ceasa_date, stale: stale
+      explanation: explanation_per_kg(ratio, ceasa, pct),
+      ceasa_date: ceasa_date, stale: stale,
+      markup: markup, market_timing: timing,
+      synthesis_key: synthesis&.dig(:key),
+      synthesis_sentence: synthesis&.dig(:sentence)
     )
   end
 
@@ -67,15 +94,20 @@ class FairPriceVerdict
     stale           = stale?(ceasa_date)
     ratio           = @paid_amount / ceasa_per_dozen
     pct             = percentile_12m(ceasa_per_dozen, :per_dozen)
-    verdict         = classify(ratio)
+    markup          = Markup.new(ratio: ratio)
+    timing          = compute_market_timing
+    synthesis       = synthesize(markup.bucket, timing)
 
     Result.new(
-      verdict: verdict, ratio: ratio,
+      verdict: markup.bucket, ratio: ratio,
       ceasa_comparable: ceasa_per_dozen.round(2), paid_comparable: @paid_amount,
       unit_label: "dúzia",
       percentile_12m: pct, seasonality_note: SeasonalityCalculator.new(@variant).note,
-      explanation: explanation_per_dozen(ratio, ceasa_per_dozen, pct, verdict),
-      ceasa_date: ceasa_date, stale: stale
+      explanation: explanation_per_dozen(ratio, ceasa_per_dozen, pct),
+      ceasa_date: ceasa_date, stale: stale,
+      markup: markup, market_timing: timing,
+      synthesis_key: synthesis&.dig(:key),
+      synthesis_sentence: synthesis&.dig(:sentence)
     )
   end
 
@@ -92,15 +124,20 @@ class FairPriceVerdict
     stale          = stale?(ceasa_date)
     ratio          = @paid_amount / ceasa_per_unit
     pct            = percentile_12m(ceasa_per_unit, :per_unit)
-    verdict        = classify(ratio)
+    markup         = Markup.new(ratio: ratio)
+    timing         = compute_market_timing
+    synthesis      = synthesize(markup.bucket, timing)
 
     Result.new(
-      verdict: verdict, ratio: ratio,
+      verdict: markup.bucket, ratio: ratio,
       ceasa_comparable: ceasa_per_unit.round(2), paid_comparable: @paid_amount,
       unit_label: "unidade",
       percentile_12m: pct, seasonality_note: SeasonalityCalculator.new(@variant).note,
-      explanation: explanation_per_unit(ratio, ceasa_per_unit, pct, verdict),
-      ceasa_date: ceasa_date, stale: stale
+      explanation: explanation_per_unit(ratio, ceasa_per_unit, pct),
+      ceasa_date: ceasa_date, stale: stale,
+      markup: markup, market_timing: timing,
+      synthesis_key: synthesis&.dig(:key),
+      synthesis_sentence: synthesis&.dig(:sentence)
     )
   end
 
@@ -119,7 +156,7 @@ class FairPriceVerdict
   def comparable_series(mode)
     @variant.representative_series(months: 12).map do |price|
       case mode
-      when :per_kg   then price.price_per_kg.to_f
+      when :per_kg    then price.price_per_kg.to_f
       when :per_dozen then price.modal.to_f / DOZENS_PER_BOX
       when :per_unit  then price.price_per_kg.to_f * @variant.avg_weight_kg.to_f
       end
@@ -130,32 +167,37 @@ class FairPriceVerdict
     @variant.representative_price(bulletin: latest_representative_bulletin)
   end
 
-  # The most recent bulletin for which this variant has a representative price.
   def latest_representative_bulletin
     @variant.representative_series.last&.bulletin
   end
 
-  def classify(ratio)
-    ratio < BARATO_MAX ? :barato : (ratio <= MEDIA_MAX ? :media : :caro)
+  def compute_market_timing
+    MarketTiming.new(variant: @variant).compute
+  end
+
+  # Returns the synthesis hash or nil (silence).
+  def synthesize(markup_bucket, timing)
+    return nil if timing.nil? || timing.null?
+    SYNTHESIS[[ markup_bucket, timing.bucket ]]
   end
 
   def stale?(ceasa_date)
     (Date.current - ceasa_date).to_i > STALE_DAYS
   end
 
-  def explanation_per_kg(ratio, ceasa, pct, _verdict)
+  def explanation_per_kg(ratio, ceasa, pct)
     "Você paga R$ #{"%.2f" % @paid_amount}/kg = #{"%.1f" % ratio}× o atacado CEASA " \
     "(R$ #{"%.2f" % ceasa}/kg). Margem típica de feira: #{BARATO_MAX}–#{MEDIA_MAX}×." \
     "#{" Hoje está no #{pct}º percentil dos últimos 12 meses." if pct}"
   end
 
-  def explanation_per_dozen(ratio, ceasa_dz, pct, _verdict)
+  def explanation_per_dozen(ratio, ceasa_dz, pct)
     "Você paga R$ #{"%.2f" % @paid_amount}/dúzia = #{"%.1f" % ratio}× o atacado CEASA " \
     "(R$ #{"%.2f" % ceasa_dz}/dúzia). Margem típica de feira: #{BARATO_MAX}–#{MEDIA_MAX}×." \
     "#{" Hoje está no #{pct}º percentil dos últimos 12 meses." if pct}"
   end
 
-  def explanation_per_unit(ratio, ceasa_unit, pct, _verdict)
+  def explanation_per_unit(ratio, ceasa_unit, pct)
     weight_g = (@variant.avg_weight_kg.to_f * 1000).round
     "Você paga R$ #{"%.2f" % @paid_amount}/unidade = #{"%.1f" % ratio}× o atacado CEASA " \
     "(R$ #{"%.2f" % ceasa_unit}/unidade, ~#{weight_g}g estimado). " \
