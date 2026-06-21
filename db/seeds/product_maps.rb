@@ -30,6 +30,7 @@ map_ceasa(1, "BANANA", "DA TERRA", "banana", "Da Terra")
 map_ceasa(1, "BANANA", "FIGO", "banana", "Figo")
 map_ceasa(1, "BANANA", "MAÇÃ Extra", "banana", "Maçã Extra")
 map_ceasa(1, "BANANA", "NANICA/D'ÁGUA Extra", "banana", "Nanica/D'Água Extra")
+map_ceasa(1, "BANANA", "NANICA/D'ÁGUA Extra", "banana", "Nanica/D'Água Extra")  # curly apostrophe variant
 map_ceasa(1, "BANANA", "OURO", "banana", "Ouro")
 map_ceasa(1, "BANANA", "PACOVAN", "banana", "Pacovan")
 map_ceasa(1, "BANANA", "PRATA Extra", "banana", "Prata Extra")
