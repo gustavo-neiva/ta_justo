@@ -1,52 +1,94 @@
-# ProductsController — Product detail page (minimal v1, no charts)
+# ProductsController — Product detail page with historical chart
 # GET /produtos/:id
+# GET /produtos/:id?variant=123&period=365&check_price=8.50
 class ProductsController < ApplicationController
+  VALID_PERIODS = %w[90 365 all].freeze
+  DEFAULT_PERIOD = "365"
+
   def show
     @product = Product.find_by!(slug: params[:id])
-    @variant = @product.default_variant
+
+    # Variant selection: honor ?variant=ID, else default_variant
+    @variant =
+      if params[:variant].present?
+        @product.variants.find_by(id: params[:variant]) || @product.default_variant
+      else
+        @product.default_variant
+      end
 
     unless @variant
       redirect_to root_path, alert: "Produto sem variante configurada"
       return
     end
 
-    # Latest price for the variant
-    @latest_price = @variant.prices
-                            .joins(:bulletin)
-                            .order('bulletins.price_date DESC')
-                            .first
+    @period = VALID_PERIODS.include?(params[:period]) ? params[:period] : DEFAULT_PERIOD
+    @unit_label = unit_label_for(@variant)
+
+    # Single source of truth (Plan §3.1): the row shown here is the same
+    # representative row the verdict and stats compute against.
+    @latest_price = @variant.latest_price
 
     unless @latest_price
       @error = "Nenhum preço encontrado para #{@product.name}"
+      @variants = @product.variants.order(:name)
       return
     end
 
     @price_date = @latest_price.bulletin.price_date
     @stale = (Date.current - @price_date).to_i > FairPriceVerdict::STALE_DAYS
 
-    # Stats (simple queries, no chart data in v1)
-    recent_prices = @variant.prices
-                            .where.not(price_per_kg: nil)
-                            .joins(:bulletin)
-                            .where('bulletins.price_date >= ?', 12.months.ago)
-
-    @stats = {
-      latest: @latest_price.price_per_kg&.round(2),
-      min_12m: recent_prices.minimum(:price_per_kg)&.round(2),
-      max_12m: recent_prices.maximum(:price_per_kg)&.round(2),
-      avg_12m: recent_prices.average(:price_per_kg)&.to_f&.round(2)
-    }
-
-    # All variants for this product (for variant selector)
+    @stats = build_stats(@variant)
     @variants = @product.variants.order(:name)
 
-    # Inline verdict calculator (optional user input)
-    if params[:check_price].present?
-      @check_price = params[:check_price].to_f
-      if @check_price > 0
-        verdict_service = FairPriceVerdict.new(variant: @variant, paid_per_kg: @check_price)
-        @verdict = verdict_service.call
-      end
+    # Chart series (Phase 2 fills these helpers in)
+    @chart_data    = ChartSeries.new(@variant, period: @period).points
+    @seasonal_data = SeasonalityCalculator.new(@variant).monthly_curve
+
+    run_inline_verdict
+  end
+
+  private
+
+  def unit_label_for(variant)
+    case variant.pricing_mode
+    when "per_dozen" then "dúzia"
+    when "per_unit"  then "unidade"
+    else                  "kg"
     end
+  end
+
+  def build_stats(variant)
+    # Representative series over 12m — same selection rule as the verdict.
+    series = variant.representative_series(months: 12).map do |price|
+      comparable_for(variant, price)
+    end.reject(&:nil?)
+
+    {
+      latest:  @latest_price.present? ? comparable_for(variant, @latest_price)&.round(2) : nil,
+      min_12m: series.min&.round(2),
+      max_12m: series.max&.round(2),
+      avg_12m: (series.any? ? (series.sum / series.size).round(2) : nil)
+    }
+  end
+
+  # Comparable value for a variant's pricing mode (kg / dúzia / unidade).
+  def comparable_for(variant, price)
+    case variant.pricing_mode
+    when "per_dozen" then price.modal.to_f / 30
+    when "per_unit"  then price.price_per_kg.to_f * variant.avg_weight_kg.to_f if variant.avg_weight_kg&.positive?
+    else                  price.price_per_kg.to_f
+    end
+  end
+
+  def run_inline_verdict
+    return if params[:check_price].blank?
+
+    paid = params[:check_price].to_f
+    return unless paid.positive?
+
+    @check_price = paid
+    @verdict = FairPriceVerdict.new(variant: @variant, paid_amount: paid).call
+  rescue => e
+    @verdict_error = e.message
   end
 end

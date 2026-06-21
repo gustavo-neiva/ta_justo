@@ -14,23 +14,53 @@ class Variant < ApplicationRecord
 
   scope :checkable, -> { where(checkable: true) }
   scope :default_variants, -> { where(default_for_product: true) }
-  
+
+  # Single source of truth for "which row represents this variant?"
+  # (Plan §3.1). Among the variant's rows on a given bulletin, picks the
+  # smallest retail pack (feira shoppers buy small, not wholesale bulk).
+  # Called by the verdict, controller stats, and the raw-data highlight so
+  # the displayed number == the computed number.
+  #
+  # Returns the Price row, or nil when no usable row exists.
+  def representative_price(bulletin:)
+    rows = prices.where(bulletin: bulletin)
+    return representative_dozen_row(rows) if pricing_mode == "per_dozen"
+
+    usable = rows.where.not(price_per_kg: nil).to_a
+    usable.min_by { |p| [ PackSize.kg(p.raw_unit) || Float::INFINITY, p.id ] }
+  end
+
+  # Representative rows over time (oldest → newest), optionally windowed.
+  # The basis for percentile / market-timing series. One row per bulletin,
+  # each chosen by the same smallest-retail-pack rule.
+  def representative_series(months: nil)
+    scope = prices.joins(:bulletin)
+    scope = scope.where("bulletins.price_date >= ?", months.months.ago) if months
+    scope = scope.where(original_unit: "dozen") if pricing_mode == "per_dozen"
+    scope = scope.where.not(price_per_kg: nil) unless pricing_mode == "per_dozen"
+
+    bulletin_ids = scope.distinct.order("bulletins.price_date ASC").pluck("bulletins.id")
+    Bulletin.where(id: bulletin_ids).order(:price_date).filter_map do |b|
+      representative_price(bulletin: b)
+    end
+  end
+
+  # Most recent representative row (latest bulletin with a usable price).
   def latest_price
-    prices.joins(:bulletin)
-          .order('bulletins.price_date DESC')
-          .retail_packaging
-          .first
+    representative_series.last
   end
 
   def latest_price_per_kg
-    prices.joins(:bulletin)
-          .where.not(price_per_kg: nil)
-          .order("bulletins.price_date DESC")
-          .first
-          &.price_per_kg
+    latest_price&.price_per_kg
   end
 
   private
+
+  # per_dozen rows are all the same box ("Cx 30 dz"); pack-size selection
+  # does not apply, so we just take a stable single row.
+  def representative_dozen_row(rows)
+    rows.where(original_unit: "dozen").order(:id).first
+  end
 
   def generate_slug
     self.slug = name.parameterize
