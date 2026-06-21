@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_21_002656) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_21_011019) do
   create_table "bulletins", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "market", default: "ceasa-rj", null: false
@@ -55,7 +55,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_21_002656) do
     t.index ["bulletin_id"], name: "index_prices_on_bulletin_id"
     t.index ["price_per_kg"], name: "index_prices_on_price_per_kg"
     t.index ["section"], name: "index_prices_on_section"
-    t.index ["variant_id", "bulletin_id"], name: "idx_prices_unique", unique: true
+    t.index ["variant_id", "bulletin_id", "raw_unit"], name: "idx_prices_unique", unique: true
     t.index ["variant_id"], name: "index_prices_on_variant_id"
   end
 

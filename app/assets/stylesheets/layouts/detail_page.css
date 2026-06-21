@@ -1,0 +1,45 @@
+/* AgroClaro — Detail Page Layout */
+
+.detail-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+.detail-page h1 { font-size: 1.5rem; margin-bottom: 4px; }
+.detail-page .subtitle { color: var(--color-text-secondary); margin-bottom: 24px; }
+
+.detail-section { margin-bottom: 32px; }
+
+.detail-section h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-primary-light);
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--color-green-50);
+  margin-bottom: 12px;
+}
+
+/* Definition Lists */
+dl.detail-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+dl.detail-fields dt {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+dl.detail-fields dd { color: var(--color-text); margin-bottom: 8px; }
+
+/* Responsive */
+@media (min-width: 768px) {
+  dl.detail-fields {
+    grid-template-columns: minmax(140px, auto) 1fr;
+  }
+
+  dl.detail-fields dd { margin-bottom: 0; }
+}

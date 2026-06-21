@@ -22,8 +22,14 @@ module CeasaRio
     private
 
     def extract_date
+      # Try newer format first: "Dia Semana: weekday DD/MM/YYYY"
       m = @text.match(/Dia Semana:\s+\S+\s+(\d{2})\/(\d{2})\/(\d{4})/)
       return Date.new($3.to_i, $2.to_i, $1.to_i) if m
+      
+      # Try older format: "Dia Semana: weekday DATA: DD/MM/YYYY"
+      m = @text.match(/Dia Semana:.*?DATA:\s+(\d{2})\/(\d{2})\/(\d{4})/)
+      return Date.new($3.to_i, $2.to_i, $1.to_i) if m
+      
       raise "Could not find price_date in PDF (Dia Semana: line)"
     end
 

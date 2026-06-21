@@ -1,0 +1,37 @@
+/* AgroClaro — Tags Component */
+
+.tag-list { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }
+
+.tag-list a, .tag-list span {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--color-green-50);
+  border-radius: 14px;
+  font-size: 0.85rem;
+  color: var(--color-primary-light);
+}
+
+.tag-list a:hover { background: var(--color-green-100); text-decoration: none; }
+
+/* Activity Grid */
+.activity-grid { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }
+
+.activity-grid a {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--color-green-50);
+  border-radius: 14px;
+  font-size: 0.85rem;
+  color: var(--color-primary-light);
+}
+
+.activity-grid a:hover { background: var(--color-green-100); text-decoration: none; }
+
+.activity-grid .muted {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--color-border-light);
+  border-radius: 14px;
+  font-size: 0.85rem;
+  color: #888;
+}

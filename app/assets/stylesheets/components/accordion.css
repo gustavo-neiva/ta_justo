@@ -1,0 +1,179 @@
+/* AgroClaro — Accordion Components */
+
+/* Accordion container */
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Accordion item (details/summary) */
+.accordion-item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-white);
+  overflow: hidden;
+}
+
+.accordion-item[open] {
+  border-color: var(--color-green-100);
+}
+
+/* Accordion summary */
+.accordion-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  transition: background 0.2s;
+}
+
+.accordion-summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion-summary:hover {
+  background: var(--color-bg-section);
+}
+
+/* Accordion title */
+.accordion-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.accordion-title-text {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-link);
+}
+
+/* Accordion badges section */
+.accordion-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Accordion indicator */
+.accordion-indicator {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  transition: transform 0.2s;
+}
+
+.accordion-item[open] .accordion-indicator {
+  transform: rotate(180deg);
+}
+
+/* Accordion content */
+.accordion-content {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--color-border-light);
+  animation: accordionSlide 0.2s ease-out;
+}
+
+@keyframes accordionSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Accordion inner sections */
+.accordion-section {
+  margin-top: 16px;
+}
+
+.accordion-section:first-child {
+  margin-top: 0;
+}
+
+.accordion-section-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+/* Accordion data grid */
+.accordion-data-grid {
+  display: grid;
+  gap: 8px 16px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 600px) {
+  .accordion-data-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.accordion-data-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.accordion-data-label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.accordion-data-value {
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+/* Product specific accordion styles */
+.product-accordion-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.usage-accordion-row {
+  padding: 12px;
+  background: var(--color-bg-section);
+  border-radius: var(--radius-sm);
+}
+
+.usage-accordion-crop {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.usage-accordion-details {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+/* Compact accordion variant */
+.accordion-item--compact .accordion-summary {
+  padding: 10px 14px;
+}
+
+.accordion-item--compact .accordion-content {
+  padding: 0 14px 14px;
+}

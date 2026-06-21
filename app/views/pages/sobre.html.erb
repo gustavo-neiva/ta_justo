@@ -1,0 +1,77 @@
+<% content_for :page_class, "landing-page" %>
+<% content_for :title, "Sobre — Tá Justo?" %>
+
+<div class="page-container">
+  <div class="page-header">
+    <h1>Sobre o Tá Justo?</h1>
+  </div>
+
+  <div style="max-width: 700px; margin: 0 auto;">
+    <section style="margin-bottom: var(--space-xl);">
+      <h2>O primeiro índice de preços para o consumidor carioca</h2>
+      <p style="line-height: 1.6; color: var(--color-text-secondary);">
+        <strong>Tá Justo?</strong> transforma os preços atacadistas CEASA-RJ em um benchmark
+        de referência para quem compra em feiras e mercados no Rio de Janeiro.
+      </p>
+    </section>
+
+    <section style="margin-bottom: var(--space-xl);">
+      <h3>Por que existe?</h3>
+      <p style="line-height: 1.6; color: var(--color-text-secondary);">
+        A CEASA-RJ publica diariamente os preços do atacado de frutas, verduras e legumes.
+        Mas esses dados vêm em PDFs densos e difíceis de consultar. Feirantes compram
+        na CEASA de madrugada e revendem com uma margem que cobre transporte, perdas e trabalho.
+      </p>
+      <p style="line-height: 1.6; color: var(--color-text-secondary); margin-top: var(--space-md);">
+        <strong>O problema:</strong> consumidores não têm referência. Você está pagando um preço justo
+        ou sendo cobrado demais? Tá Justo? responde essa pergunta em 3 segundos.
+      </p>
+    </section>
+
+    <section style="margin-bottom: var(--space-xl);">
+      <h3>Como funciona?</h3>
+      <ol style="line-height: 1.8; color: var(--color-text-secondary); padding-left: var(--space-lg);">
+        <li>Todo dia útil, buscamos o boletim CEASA-RJ mais recente</li>
+        <li>Convertemos todos os preços para R$/kg (a unidade que você compara na feira)</li>
+        <li>Quando você digita o preço que está pagando, comparamos com o atacado</li>
+        <li>Aplicamos a margem típica de feira (1.7–2.5×) e te dizemos: <strong>barato, na média, ou caro</strong></li>
+      </ol>
+    </section>
+
+    <section style="margin-bottom: var(--space-xl);">
+      <h3>Limitações e transparência</h3>
+      <p style="line-height: 1.6; color: var(--color-text-secondary);">
+        Este é um <strong>guia</strong>, não uma verdade absoluta:
+      </p>
+      <ul style="line-height: 1.8; color: var(--color-text-secondary); padding-left: var(--space-lg); margin-top: var(--space-sm);">
+        <li>A margem de 1.7–2.5× é uma estimativa. Varia por bairro, produto e sazonalidade</li>
+        <li>O preço CEASA é de dias de semana; feiras de fim de semana podem ter 1-3 dias de defasagem</li>
+        <li>Produtos orgânicos, raros ou de nicho não estão no CEASA</li>
+      </ul>
+      <p style="line-height: 1.6; color: var(--color-text-secondary); margin-top: var(--space-md);">
+        Ainda assim, é o melhor benchmark público disponível para o Rio de Janeiro.
+      </p>
+    </section>
+
+    <section style="margin-bottom: var(--space-xl);">
+      <h3>Dados</h3>
+      <p style="line-height: 1.6; color: var(--color-text-secondary);">
+        Todos os preços vêm dos boletins oficiais da CEASA-RJ (Governo do Estado do Rio de Janeiro).
+        Processamos ~3 anos de histórico (março 2023–presente) para tendências e sazonalidade.
+      </p>
+    </section>
+
+    <section style="margin-bottom: var(--space-xl);">
+      <h3>Quem fez isso?</h3>
+      <p style="line-height: 1.6; color: var(--color-text-secondary);">
+        Projeto pessoal de código aberto. Sem publicidade, sem venda de dados, 100% gratuito.
+        Se quiser contribuir ou reportar um problema, entre em contato.
+      </p>
+    </section>
+
+    <div style="margin-top: var(--space-xl); text-align: center;">
+      <%= link_to "← Voltar ao checker", root_path, class: "button primary" %>
+      <%= link_to "Ver preços de hoje", precos_path, class: "button secondary" %>
+    </div>
+  </div>
+</div>

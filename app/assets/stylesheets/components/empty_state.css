@@ -1,0 +1,30 @@
+/* AgroClaro — Empty State Component */
+
+.empty-state {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--color-text-secondary);
+}
+
+.empty-state strong { color: var(--color-text); }
+
+/* Admin Empty State */
+.admin-empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--color-bg-white);
+  border-radius: 8px;
+  color: var(--color-gray-500);
+}
+
+.admin-empty-state-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-gray-500);
+  margin-bottom: 8px;
+}
+
+.admin-empty-state-text {
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+}

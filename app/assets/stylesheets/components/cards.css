@@ -1,0 +1,251 @@
+/* AgroClaro — Card Components */
+
+/* Result Cards */
+.tab-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 20px;
+}
+
+.result-card {
+  border: 1px solid var(--color-border-light);
+  border-radius: 10px;
+  background: var(--color-bg-white);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.result-card:hover {
+  border-color: var(--color-green-100);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.card-link {
+  display: block;
+  padding: 14px 16px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.card-link:hover { text-decoration: none; }
+
+.card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-link);
+}
+
+.card-scientific {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.card-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.card-meta {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.card-description {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.card-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  background: var(--color-green-50);
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: var(--color-primary-light);
+  font-weight: 500;
+}
+
+.card-arrow {
+  margin-left: auto;
+  color: var(--color-border-light);
+  font-size: 1.1rem;
+}
+
+.result-card:hover .card-arrow { color: var(--color-primary-light); }
+
+/* Legacy Result Styles (kept for detail pages that still use them) */
+.result-group { margin-bottom: 28px; }
+
+.result-group-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 8px;
+}
+
+.result-count { font-weight: 400; color: var(--color-text-muted); }
+.result-items { list-style: none; }
+.result-item { padding: 4px 0; }
+
+.result-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.result-link:hover { background: var(--color-border-light); text-decoration: none; }
+
+.result-title { font-weight: 500; color: var(--color-link); }
+.result-meta { font-size: 0.85rem; color: #666; }
+
+/* Organic Badge */
+.organic-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: var(--color-success);
+  color: var(--color-bg-white);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+
+/* Cross-Linking */
+.qa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qa-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--color-bg-section);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+}
+
+.qa-question {
+  font-weight: 500;
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.qa-question:hover {
+  text-decoration: none;
+}
+
+.qa-source {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.section-description {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+}
+
+.related-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.related-item-card {
+  padding: 16px;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+}
+
+.related-item-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.related-item-link:hover {
+  text-decoration: none;
+}
+
+.related-item-title {
+  font-weight: 600;
+  color: var(--color-link);
+}
+
+/* Quality Warning */
+.quality-warning {
+  padding: 12px 16px;
+  background: var(--color-warning-bg, #fff8e1);
+  border: 1px solid var(--color-warning-border, #ffe082);
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.9rem;
+  color: var(--color-text-primary, #333);
+  margin-bottom: 16px;
+}
+
+.hidden-sources-info {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.hidden-sources-info summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.hidden-sources-info ul {
+  margin-top: 8px;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.hidden-sources-info li {
+  margin-bottom: 4px;
+}
+
+/* Touch active states */
+@media (hover: none) {
+  .result-card:active {
+    background: var(--color-border-light);
+  }
+  .result-link:active {
+    background: var(--color-border-light);
+  }
+  .related-item-link:active {
+    opacity: 0.7;
+  }
+}

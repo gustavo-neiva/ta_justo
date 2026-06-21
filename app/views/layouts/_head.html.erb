@@ -1,0 +1,56 @@
+<title><%= content_for(:title) || "AgroClaro — Dados Agrícolas do Brasil Simplificados" %></title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="application-name" content="AgroClaro">
+<meta name="mobile-web-app-capable" content="yes">
+<%= csrf_meta_tags %>
+<%= csp_meta_tag %>
+
+<%# Meta Description %>
+<%= content_for?(:meta_description) ? meta_description_tag(content_for(:meta_description)) : tag.meta(name: "description", content: "AgroClaro transforma dados agrícolas brasileiros complexos em orientação prática para produtores rurais. Preços, pragas, defensivos e glossário.") %>
+
+<%# Open Graph Tags %>
+<%= content_for?(:og_tags) ? yield(:og_tags) : og_tags(
+  title: "AgroClaro — Dados Agrícolas do Brasil Simplificados",
+  description: "Dados agrícolas brasileiros simplificados para produtores rurais. Preços, pragas, defensivos e glossário.",
+  url: root_url,
+  type: "website"
+) %>
+
+<%# Twitter Card %>
+<%= content_for?(:twitter_card) ? yield(:twitter_card) : twitter_card_tags(
+  title: "AgroClaro — Dados Agrícolas do Brasil Simplificados",
+  description: "Dados agrícolas brasileiros simplificados para produtores rurais."
+) %>
+
+<%# Canonical URL %>
+<%= content_for?(:canonical_url) ? canonical_url(content_for(:canonical_url)) : canonical_url(request.url.split('?').first) %>
+
+<%= yield :head %>
+
+<%# JSON-LD Structured Data %>
+<%= content_for?(:structured_data) ? yield(:structured_data) : "" %>
+
+<%# Inter Font - Google Fonts (non-blocking) %>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+
+<%# Icons %>
+<link rel="icon" href="/icon.png" type="image/png">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<%# PWA Manifest %>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#035925">
+
+<%= javascript_importmap_tags %>
+
+<%# GoatCounter Analytics (privacy-friendly, no cookies) %>
+<% if Rails.application.credentials.dig(:goatcounter, :site_code).present? %>
+  <script data-goatcounter="https://<%= Rails.application.credentials.dig(:goatcounter, :site_code) %>.goatcounter.com/count"
+          async src="//gc.zgo.at/count.js"></script>
+<% end %>

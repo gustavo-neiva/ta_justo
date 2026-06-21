@@ -1,0 +1,135 @@
+/* AgroClaro — Data Table Component */
+
+/* Scrollable wrapper with border */
+.data-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-white);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.data-table th,
+.data-table td {
+  padding: var(--space-sm) var(--space-md);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.data-table th {
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-section);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.data-table td {
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+/* Zebra striping */
+.data-table tbody tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.015);
+}
+
+/* Green hover */
+.data-table tbody tr:hover {
+  background: var(--color-green-50);
+}
+
+/* Sticky first column for horizontal scroll */
+.data-table--sticky-first td:first-child,
+.data-table--sticky-first th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--color-bg-white);
+}
+
+.data-table--sticky-first th:first-child {
+  z-index: 3;
+  background: var(--color-bg-section);
+}
+
+.data-table--sticky-first tr:hover td:first-child {
+  background: var(--color-green-50);
+}
+
+.data-table--sticky-first tr:nth-child(even) td:first-child {
+  background: rgba(248, 248, 248, 1);
+}
+
+.data-table--sticky-first tr:nth-child(even):hover td:first-child {
+  background: var(--color-green-50);
+}
+
+/* Column utility classes */
+.col-name {
+  font-weight: var(--font-semibold);
+}
+
+.col-name a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.col-name a:hover {
+  text-decoration: underline;
+}
+
+.col-numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.col-secondary {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+/* Sortable column headers */
+.data-table th[data-sortable] {
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition-fast);
+}
+
+.data-table th[data-sortable]:hover {
+  background: var(--color-border-light);
+}
+
+.sort-indicator {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  vertical-align: middle;
+}
+
+.sort-indicator.active {
+  color: var(--color-primary);
+}
+
+/* Product List (legacy) */
+.product-list { list-style: none; }
+.product-list li { padding: 8px 0; border-bottom: 1px solid var(--color-border-light); }
+.product-list li:last-child { border-bottom: none; }
+
+/* Mobile: denser padding */
+@media (max-width: 480px) {
+  .data-table th,
+  .data-table td {
+    padding: 6px var(--space-sm);
+    font-size: 0.8rem;
+  }
+}

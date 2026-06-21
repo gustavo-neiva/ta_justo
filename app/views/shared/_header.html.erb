@@ -1,0 +1,30 @@
+<header class="site-header" data-controller="navigation">
+  <div class="header-inner">
+    <%= link_to "Tá Justo?", root_path, class: "header-logo" %>
+
+    <!-- Desktop navigation -->
+    <nav class="header-nav desktop-only">
+      <%= link_to "Preços", precos_path, class: "header-nav-link#{' active' if request.path == precos_path}" %>
+      <%= link_to "Sobre", sobre_path, class: "header-nav-link#{' active' if request.path == sobre_path}" %>
+    </nav>
+
+    <div class="header-actions">
+      <!-- Mobile hamburger button -->
+      <button type="button" class="header-hamburger" data-action="navigation#toggleMenu" aria-label="Menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile slide-out menu -->
+  <div class="mobile-menu" data-navigation-target="menu" data-action="click->navigation#closeOnBackdrop keydown@window->navigation#closeOnEscape">
+    <div class="mobile-menu-inner">
+      <nav class="mobile-menu-nav">
+        <%= link_to "Preços", precos_path, class: "mobile-menu-link#{' active' if request.path == precos_path}", data: { action: "navigation#closeMenu" } %>
+        <%= link_to "Sobre", sobre_path, class: "mobile-menu-link#{' active' if request.path == sobre_path}", data: { action: "navigation#closeMenu" } %>
+      </nav>
+    </div>
+  </div>
+</header>

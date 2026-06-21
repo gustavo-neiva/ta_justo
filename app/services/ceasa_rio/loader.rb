@@ -27,6 +27,10 @@ module CeasaRio
             next
           end
 
+          # Skip if this exact variant+packaging already exists for this bulletin
+          # (protects against PDF parsing duplicates while preserving different pack sizes)
+          next if Price.exists?(bulletin: b, variant: variant, raw_unit: row.raw_unit)
+
           unit_normalizer = CeasaRio::UnitNormalizer.new
           
           Price.create!(

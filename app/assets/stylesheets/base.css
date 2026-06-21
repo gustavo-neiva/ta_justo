@@ -1,0 +1,122 @@
+/* AgroClaro — Base Styles */
+
+/* Reset & Base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-primary);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-text-size-adjust: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.hidden {
+  display: none;
+}
+
+a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.desktop-only {
+  display: flex;
+}
+.mobile-only {
+  display: none;
+}
+
+/* Responsive Visibility */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: block !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none !important;
+  }
+  .desktop-only {
+    display: flex !important;
+  }
+}
+
+/* Turbo Progress Bar */
+.turbo-progress-bar {
+  height: 3px;
+  background: var(--color-primary);
+  box-shadow: 0 0 8px rgba(3, 89, 37, 0.4);
+}
+
+/* Turbo Frame Loading State */
+turbo-frame[busy] {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+  min-height: 40px;
+}
+
+turbo-frame[busy]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: turbo-spin 0.6s linear infinite;
+}
+
+@keyframes turbo-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Touch Target Utility */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Touch device: convert hover → active */
+@media (hover: none) {
+  a:hover,
+  button:hover {
+    text-decoration: none;
+  }
+  a:active {
+    text-decoration: underline;
+    opacity: 0.7;
+  }
+  button:active {
+    opacity: 0.8;
+  }
+}
+
+/* Notched device safe area */
+body {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}

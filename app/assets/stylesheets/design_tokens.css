@@ -1,0 +1,168 @@
+/* AgroClaro Design Tokens — CSS Custom Properties */
+
+:root {
+  /* Brand Colors */
+  --color-primary: #035925; /* Dark forest green */
+  --color-primary-light: #2e7d32; /* Current green, used for accents */
+  --color-primary-dark: #032c11; /* Darkest green */
+  --color-accent: #f5e197; /* Warm gold accent */
+
+  /* Neutral Colors */
+  --color-text: #1a1a1a;
+  --color-text-secondary: #585858;
+  --color-text-muted: #999;
+  --color-bg: #fafafa;
+  --color-bg-white: #ffffff;
+  --color-bg-section: #f5f5f5;
+  --color-border: #e0e0e0;
+  --color-border-light: #f0f0f0;
+
+  /* Semantic Colors */
+  --color-link: #1a73e8;
+  --color-success: #2e7d32;
+  --color-danger: #d32f2f;
+  --color-warning: #f9a825;
+  --color-warning-dark: #e65100;
+
+  /* Typography - Inter Font Family */
+  --font-primary:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-heading:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  /* Spacing Scale */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 60px;
+  --space-3xl: 80px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  /* Container */
+  --container-max: 1200px;
+  --container-narrow: 960px;
+
+  /* Font Sizes (bumped for mobile readability) */
+  --font-size-xs: 0.75rem;    /* 12px — accessibility minimum */
+  --font-size-sm: 0.875rem;   /* 14px — WCAG readable minimum */
+  --font-size-base: 0.9375rem;/* 15px — comfortable mobile reading */
+  --font-size-md: 1rem;       /* 16px — standard body text */
+  --font-size-lg: 1.05rem;
+  --font-size-xl: 1.15rem;
+  --font-size-2xl: 1.25rem;
+  --font-size-3xl: 1.5rem;
+  --font-size-4xl: 1.875rem;
+  --font-size-5xl: 2.5rem;
+
+  /* Font Weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+
+  /* Line Heights */
+  --leading-tight: 1.05;
+  --leading-snug: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+
+  /* Z-Index Scale */
+  --z-dropdown: 50;
+  --z-sticky: 100;
+  --z-overlay: 200;
+  --z-modal: 300;
+
+  /* Green Palette */
+  --color-green-50: #e8f5e9;
+  --color-green-100: #c8e6c9;
+  --color-green-200: #a5d6a7;
+  --color-green-600: #2e7d32;
+
+  /* Purple Palette */
+  --color-purple-50: #f3e5f5;
+  --color-purple-dark: #6a1b9a;
+
+  /* Additional Gray Palette */
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+
+  /* Toxicological Colors */
+  --color-tox-1: #c62828;
+  --color-tox-2: #ef6c00;
+  --color-tox-5: #757575;
+  --color-tox-6: #43a047;
+  --color-tox-7: #9e9e9e;
+
+  /* Blue for Agro Tag */
+  --color-blue-agro: #e3f2fd;
+  --color-blue-dark: #1565c0;
+
+  /* Orange Palette */
+  --color-orange-50: #fff3e0;
+  --color-orange-dark: #e65100;
+
+  /* Green Extended */
+  --color-green-600: #2e7d32;
+
+  /* Purple Palette */
+  --color-purple-50: #f3e5f5;
+  --color-purple-dark: #6a1b9a;
+
+  /* Red Light (for trend badges) */
+  --color-red-50: #fce4ec;
+
+  /* Pest Type Colors */
+  --color-pest-inseto: #d84315;
+  --color-pest-inseto-bg: #fbe9e7;
+  --color-pest-doenca: #6a1b9a;
+  --color-pest-doenca-bg: #f3e5f5;
+  --color-pest-planta-daninha: #2e7d32;
+  --color-pest-acaro: #e65100;
+  --color-pest-acaro-bg: #fff3e0;
+  --color-pest-nematode: #795548;
+  --color-pest-nematode-bg: #efebe9;
+
+  /* Chart Colors (SMA) */
+  --color-chart-sma7: #ff9800;
+  --color-chart-sma30: #9c27b0;
+
+  /* Additional Button Colors */
+  --color-secondary-btn: #6b7280;
+  --color-danger-hover: #dc2626;
+
+  /* Breakpoints (documentation — use in @media queries) */
+  /* --bp-mobile: 480px; */
+  /* --bp-tablet: 768px; */
+  /* --bp-desktop: 1024px; */
+
+  /* System font fallback for fast first paint */
+  --font-system:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}

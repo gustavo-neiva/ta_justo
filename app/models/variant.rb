@@ -14,6 +14,13 @@ class Variant < ApplicationRecord
 
   scope :checkable, -> { where(checkable: true) }
   scope :default_variants, -> { where(default_for_product: true) }
+  
+  def latest_price
+    prices.joins(:bulletin)
+          .order('bulletins.price_date DESC')
+          .retail_packaging
+          .first
+  end
 
   def latest_price_per_kg
     prices.joins(:bulletin)

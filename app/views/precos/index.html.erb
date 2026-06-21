@@ -1,0 +1,81 @@
+<% content_for :page_class, "index-page" %>
+<% content_for :title, "Preços CEASA-RJ Hoje — Tá Justo?" %>
+
+<div class="page-container">
+  <div class="page-header">
+    <h1>Preços CEASA-RJ</h1>
+    <% if @price_date %>
+      <p class="subtitle">
+        Atualizado: <%= I18n.l(@price_date, format: :long) %> (<%= @weekday %>)
+        <% if @stale %>
+          <span class="stale-badge">
+            ⚠️ <%= (Date.current - @price_date).to_i %> dias atrás
+          </span>
+        <% end %>
+      </p>
+    <% end %>
+  </div>
+
+  <% if @error %>
+    <div class="empty-state">
+      <p><%= @error %></p>
+      <p style="margin-top: var(--space-md);">
+        <%= link_to "← Voltar ao checker", root_path, class: "button primary" %>
+      </p>
+    </div>
+  <% elsif @sections.empty? %>
+    <div class="empty-state">
+      <p>Nenhum preço encontrado para hoje.</p>
+    </div>
+  <% else %>
+    <div class="price-sections">
+      <% @sections.each do |section_num, section_data| %>
+        <div class="price-section">
+          <div class="price-section-header">
+            <h2><%= section_data[:name] %></h2>
+            <span class="badge secondary"><%= section_data[:prices].count %> produtos</span>
+          </div>
+
+          <div class="price-list">
+            <% section_data[:prices].each do |price| %>
+              <% product = price.variant.product %>
+              <% 
+                # Skip if no per-kg price (eggs, per-unit items shown differently)
+                display_price = if price.price_per_kg
+                  "R$ #{number_with_precision(price.price_per_kg, precision: 2)}/kg"
+                elsif price.modal
+                  "R$ #{number_with_precision(price.modal, precision: 2)}"
+                else
+                  "S/C"
+                end
+
+                variation = price.variation_12m.to_s.strip
+                variation_class = if variation.start_with?('-')
+                  'negative'
+                elsif variation.match?(/^\d/)
+                  'positive'
+                else
+                  'neutral'
+                end
+              %>
+
+              <%= link_to product_path(product.slug), class: "price-row" do %>
+                <span class="product-name"><%= product.name %></span>
+                <span class="price-value"><%= display_price %></span>
+                <% unless variation.empty? || variation == 'S/C' %>
+                  <span class="variation-chip <%= variation_class %>">
+                    <%= variation %>
+                  </span>
+                <% end %>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div style="margin-top: var(--space-xl); text-align: center;">
+      <%= link_to "← Voltar ao checker", root_path, class: "button secondary" %>
+    </div>
+  <% end %>
+</div>

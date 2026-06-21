@@ -1,0 +1,133 @@
+<% content_for :page_class, "detail-page" %>
+<% content_for :title, "#{@product.name} — Preços CEASA-RJ — Tá Justo?" %>
+
+<div class="page-container">
+  <div class="page-header">
+    <h1><%= @product.name %></h1>
+    <p class="subtitle"><%= @variant.name %></p>
+  </div>
+
+  <% if @error %>
+    <div class="empty-state">
+      <p><%= @error %></p>
+      <%= link_to "← Voltar aos preços", precos_path, class: "button primary" %>
+    </div>
+  <% else %>
+    <!-- Latest Price -->
+    <div class="product-header-stats">
+      <div class="stat-card">
+        <div class="stat-label">Último preço</div>
+        <div class="stat-value">
+          <% if @stats[:latest] %>
+            R$ <%= number_with_precision(@stats[:latest], precision: 2) %>/kg
+          <% else %>
+            S/C
+          <% end %>
+        </div>
+        <div class="stat-label" style="margin-top: var(--space-xs);">
+          <%= I18n.l(@price_date, format: :short) %>
+          <% if @stale %>
+            <span class="stale-badge">desatualizado</span>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Mín. 12m</div>
+        <div class="stat-value">
+          <% if @stats[:min_12m] %>
+            R$ <%= number_with_precision(@stats[:min_12m], precision: 2) %>
+          <% else %>
+            —
+          <% end %>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Máx. 12m</div>
+        <div class="stat-value">
+          <% if @stats[:max_12m] %>
+            R$ <%= number_with_precision(@stats[:max_12m], precision: 2) %>
+          <% else %>
+            —
+          <% end %>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Média 12m</div>
+        <div class="stat-value">
+          <% if @stats[:avg_12m] %>
+            R$ <%= number_with_precision(@stats[:avg_12m], precision: 2) %>
+          <% else %>
+            —
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Variant Selector -->
+    <% if @variants.count > 1 %>
+      <div class="variant-selector">
+        <h3>Outras variantes</h3>
+        <div class="variant-links">
+          <% @variants.each do |v| %>
+            <%= link_to v.name, 
+                product_path(@product.slug, variant: v.id),
+                class: "variant-link #{'active' if v.id == @variant.id}" %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Inline Verdict Calculator -->
+    <div class="checker-container" style="max-width: 100%; margin-top: var(--space-xl); background: var(--color-background-secondary); padding: var(--space-lg); border-radius: var(--radius-lg);">
+      <h3>Tá justo?</h3>
+      <p style="color: var(--color-text-secondary); margin-bottom: var(--space-md);">
+        Digite o preço que você está pagando para comparar:
+      </p>
+
+      <%= form_with url: product_path(@product.slug), method: :get, class: "checker-form" do |f| %>
+        <div class="form-group">
+          <label for="check_price">Preço por kg (R$)</label>
+          <input 
+            type="number" 
+            step="0.01" 
+            min="0.01"
+            name="check_price" 
+            id="check_price" 
+            class="form-control" 
+            placeholder="Ex: 8.50"
+            value="<%= params[:check_price] %>">
+        </div>
+
+        <button type="submit" class="button primary">Verificar</button>
+      <% end %>
+
+      <% if @verdict %>
+        <div class="verdict-result <%= @verdict.verdict %>" style="margin-top: var(--space-md);">
+          <div class="verdict-badge <%= @verdict.verdict %>">
+            <% case @verdict.verdict %>
+            <% when :barato %>
+              ✅ Barato
+            <% when :media %>
+              ➖ Na média
+            <% when :caro %>
+              ⚠️ Caro
+            <% end %>
+          </div>
+
+          <div class="verdict-explanation">
+            <%= @verdict.explanation %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Navigation -->
+    <div style="margin-top: var(--space-xl); text-align: center;">
+      <%= link_to "← Todos os preços", precos_path, class: "button secondary" %>
+      <%= link_to "Novo checker", root_path, class: "button primary" %>
+    </div>
+  <% end %>
+</div>

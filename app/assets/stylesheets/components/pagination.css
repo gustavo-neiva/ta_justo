@@ -1,0 +1,74 @@
+/* AgroClaro — Pagination Component */
+
+.pagination-wrapper {
+  margin-top: var(--space-lg);
+}
+
+.pagination-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.pagination-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--space-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-medium);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  background: var(--color-bg-white);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  .pagination-link {
+    padding: 0 var(--space-sm);
+    font-size: var(--font-size-sm);
+  }
+}
+
+.pagination-link:hover {
+  background: var(--color-bg-section);
+  border-color: var(--color-gray-400);
+  text-decoration: none;
+}
+
+.pagination-current {
+  background: var(--color-green-600);
+  border-color: var(--color-green-600);
+  color: #fff;
+  cursor: default;
+}
+
+.pagination-current:hover {
+  background: var(--color-green-600);
+  border-color: var(--color-green-600);
+  color: #fff;
+}
+
+.pagination-gap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 var(--space-xs);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+}
+
+.pagination-disabled,
+.pagination-disabled:hover {
+  opacity: 0.4;
+  cursor: default;
+  background: var(--color-bg-section);
+  border-color: var(--color-border);
+}
