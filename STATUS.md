@@ -18,22 +18,25 @@
 - D3 controllers copied but unwired (deferred to v1.1)
 - `config/recurring.yml`: daily fetch (weekdays 9am BRT) + Sunday backfill reconciliation
 
-### Data (Full Backfill — B4 Complete)
+### Data (Full Backfill — B4 + Legacy Backfill Complete)
 
-- **766 bulletins** ingested · 2023-03-01 → 2026-06-19
-- **151,917 prices**
-- **42 pending matches** — all §7 fish (expected; index-only, not in checker)
-- **0 pending for core basket** (§1–6 produce + eggs fully mapped)
-- All 40 months populated; every month in 14–23 bulletins range
+- **1,037 bulletins** ingested · 2022-01-03 → 2026-06-19
+  - 769 modern (≥ 2023-03-01) · 268 legacy (2022-01-03 → 2023-02-28)
+- **162,907 prices** (151,920 modern + 10,987 legacy)
+- **434 pending matches** (42 pre-existing §7 fish + 392 from legacy; core basket not affected)
+- **0 pending for core basket** (§1–6 produce + eggs fully mapped, fixtures and live data)
+- All 54 months populated (2022-01 through 2026-06)
 
 **Year breakdown:**
 
-| Year | Bulletins |
-|------|-----------|
-| 2023 (Mar–Dec) | 201 |
-| 2024 | 238 |
-| 2025 | 224 |
-| 2026 (Jan–Jun) | 103 |
+| Year | Bulletins | Era |
+|------|-----------|-----|
+| 2022 (Jan–Dec) | ~228 | Legacy |
+| 2023 (Jan–Feb) | ~40 | Legacy |
+| 2023 (Mar–Dec) | 201 | Modern |
+| 2024 | 238 | Modern |
+| 2025 | 224 | Modern |
+| 2026 (Jan–Jun) | 103 | Modern |
 
 ### Bugs Found & Fixed During Backfill
 
@@ -42,6 +45,9 @@
 | BANANA NANICA missing from all 766 bulletins | PDF uses curly `'` (U+2019); seed had straight `'` | Updated ProductMap raw_tipo + re-ingested all bulletins |
 | OVO BRANCO/VERMELHO missing | PDF emits `"BRANCO"`, seed expected `"BRANCO Extra"` | Added plain-raw_tipo ProductMap entries |
 | 8 months silently skipped by crawler (Sep/Oct/Feb/Apr/Dec) | `.strip` ran before `.gsub` → U+00A0 not removed → month-name regex failed | Swapped to `.gsub(/\p{Space}+/, " ").strip` in `parse_month_links` |
+| `ceasa:validate_mapping` found 0 fixture PDFs | Task globbed `spec/fixtures/ceasa/*.pdf` (non-existent) | Fixed to `test/fixtures/files/ceasa/**/*.pdf` |
+| Legacy §2 MAÇÃ/UVA compressed variants unparseable | `pdftotext -layout` drops space in narrow columns: "Red delicious" → "Reddelicious" | Added both forms to `product_maps_legacy.rb` seed |
+| Stray `0` line treated as product header | `140,0` price split across two lines by pdftotext; orphan `0` passed through | Added `/\A\d+\z/` to `DROP_RE` in `Parser::Legacy` |
 
 ---
 
@@ -92,10 +98,10 @@
 | # | Status | Item |
 |---|--------|------|
 | 1 | ✅ | App boots; design system + header/footer; D3 vendored |
-| 2 | ⚠️ | Parser 178/178 ✓; edge-case unit tests not written |
-| 3 | ⚠️ | Validation rake task created; no sample PDFs in spec/fixtures/ yet |
+| 2 | ⚠️ | 94 tests green (Parser::Modern + Parser::Legacy, 19 parser tests); edge-case unit tests not written |
+| 3 | ✅ | Validation rake task + 5 fixture PDFs in test/fixtures/files/ceasa/; core basket 100% |
 | 4 | ✅ | Core basket 100% mapped; 234 variants seeded; default_variants set |
-| 5 | ✅ | 766 bulletins backfilled; 0 core-basket pending; dedup verified |
+| 5 | ✅ | 1,037 bulletins backfilled (769 modern + 268 legacy); 0 core-basket pending; dedup verified |
 | 6 | ✅ | Checker renders; per-dozen (eggs) + per-unit verdict modes wired and tested |
 | 7 | ⚠️ | `/precos` built; needs QA with live data |
 | 8 | ✅ | `/produtos/:slug` minimal page; D3 copied but unwired |
@@ -112,5 +118,5 @@
 | Issue | Impact | Priority |
 |-------|--------|----------|
 | Parser edge-case unit tests not written | No CI gate on parser regression | Post-deploy |
-| No sample PDFs in `spec/fixtures/ceasa/` | `rake ceasa:validate_mapping` runs against 0 files | Low |
+| 4 live "Reddelicious"/"Redglobe" pending matches in 268 legacy bulletins | Column-width drift compresses "Red delicious" in some PDF years; seed has both forms for future re-ingest | Low |
 | Mobile QA not done | Layout regressions possible at 375px | Before deploy |

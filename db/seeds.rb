@@ -14,6 +14,9 @@ load Rails.root.join('db/seeds/products.rb')
 # 3. ProductMaps (248 CEASA-RJ tuples → canonical products)
 load Rails.root.join('db/seeds/product_maps.rb')
 
+# 3b. Legacy ProductMaps (2022-01 → 2023-02 era, 33 core-basket entries)
+load Rails.root.join('db/seeds/product_maps_legacy.rb')
+
 # 4. Price Indices (IPCA + INPC full history from BCB SGS API)
 load Rails.root.join('db/seeds/price_indices.rb')
 

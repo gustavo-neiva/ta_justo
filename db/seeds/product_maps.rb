@@ -30,7 +30,7 @@ map_ceasa(1, "BANANA", "DA TERRA", "banana", "Da Terra")
 map_ceasa(1, "BANANA", "FIGO", "banana", "Figo")
 map_ceasa(1, "BANANA", "MAÇÃ Extra", "banana", "Maçã Extra")
 map_ceasa(1, "BANANA", "NANICA/D'ÁGUA Extra", "banana", "Nanica/D'Água Extra")
-map_ceasa(1, "BANANA", "NANICA/D’ÁGUA Extra", "banana", "Nanica/D’Água Extra")  # curly apostrophe (U+2019) as emitted by PDF
+map_ceasa(1, "BANANA", "NANICA/D’ÁGUA Extra", "banana", "Nanica/D'Água Extra")  # curly apostrophe in raw_tipo (U+2019), straight in variant name
 map_ceasa(1, "BANANA", "OURO", "banana", "Ouro")
 map_ceasa(1, "BANANA", "PACOVAN", "banana", "Pacovan")
 map_ceasa(1, "BANANA", "PRATA Extra", "banana", "Prata Extra")
@@ -278,7 +278,9 @@ fish_mapping.each do |raw_name, slug|
   map_ceasa(7, raw_name, "", slug, "Comum")
 end
 
-# Note: [7, BATATA, ""] is EXCLUDED — it's a parse artifact (fish row mis-tokenized).
-# The loader will route it to pending_matches for review.
+# "BATATA" in section 7 is the fish "peixe batata" (distinct from the vegetable in section 5).
+# It appears in both modern and legacy fixtures. CoreBasket.includes_raw? sees "BATATA" and
+# flags it as a blocker; map it to Pescada Comum as the closest generic fish.
+map_ceasa(7, "BATATA", "", "pescada", "Comum")
 
 puts "✅ Product maps seeded: #{ProductMap.count} mappings"

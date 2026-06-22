@@ -39,7 +39,7 @@
       <p>Nenhum preço encontrado<%= " para \"#{params[:q]}\"" if params[:q].present? %>.</p>
     </div>
   <% else %>
-    <%= turbo_frame_tag "precos-list" do %>
+    <%= turbo_frame_tag "precos-list", target: "_top" do %>
       <div class="price-sections">
       <% @sections.each do |section_num, section_data| %>
         <div class="price-section">

@@ -4,6 +4,10 @@
 
 Tá Justo? turns CEASA-RJ's daily wholesale PDF bulletins into a fair-price benchmark that any shopper at a feira or market can check in 3 taps.
 
+> **Agents/contributors:** read [`AGENTS.md`](AGENTS.md) first — it captures the
+> non-obvious facts about the CEASA pipeline (two PDF formats, URL/date traps,
+> idempotency, pricing modes, and known historical bugs).
+
 ---
 
 ## 🎯 What It Does
@@ -90,12 +94,11 @@ storage/ceasa/raw/       # Archived PDFs (not in git)
 
 ## 📖 Documentation
 
-See `~/Code/gustavo-neiva/agroclaro/specs/PLAN_MIGRATION_TACARO_2026_06_20_19:55.md` for the complete migration plan with:
-- Full technical spec (§0-14)
-- Data model design (§2)
-- Parser & services (§4-6)
-- Phasing & DoD (§11-12)
-- Execution status (updated 2026-06-20 22:30)
+- [`AGENTS.md`](AGENTS.md) — working notes & CEASA data caveats (read first)
+- [`CONTEXT.md`](CONTEXT.md) — ubiquitous-language glossary
+- [`STATUS.md`](STATUS.md) / [`PROGRESS.md`](PROGRESS.md) — execution status
+- [`specs/PLAN_LEGACY_BACKFILL.md`](specs/PLAN_LEGACY_BACKFILL.md) — pre-2023 historical import plan (adaptor + backfill)
+- `~/Code/gustavo-neiva/agroclaro/specs/PLAN_MIGRATION_TACARO_2026_06_20_19:55.md` — the canonical migration plan (§0–14: data model, parser/services, phasing, DoD)
 
 ---
 

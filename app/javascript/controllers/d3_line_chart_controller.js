@@ -19,8 +19,16 @@ export default class extends Controller {
 
   connect() {
     this._debouncedDraw = this._debounce(() => this.draw(), 300)
-    this.resizeObserver = new ResizeObserver(this._debouncedDraw)
+    this._resizeObserverReady = false
+    this.resizeObserver = new ResizeObserver(() => {
+      if (!this._resizeObserverReady) {
+        this._resizeObserverReady = true
+        return // skip the initial async callback that fires right after observe()
+      }
+      this._debouncedDraw()
+    })
     this.resizeObserver.observe(this.chartTarget)
+    this._connected = true
     this.draw()
   }
 
@@ -40,19 +48,37 @@ export default class extends Controller {
     this.showSma30Value = event.target.checked
   }
 
-  showUsdValueChanged() { this.draw() }
-  showSma7ValueChanged() { this.draw() }
-  showSma30ValueChanged() { this.draw() }
-  showSeasonalValueChanged() { this.draw() }
+  showUsdValueChanged() { if (this._connected) this.draw() }
+  showSma7ValueChanged() { if (this._connected) this.draw() }
+  showSma30ValueChanged() { if (this._connected) this.draw() }
+  showSeasonalValueChanged() { if (this._connected) this.draw() }
   toggleSeasonal(event) { this.showSeasonalValue = event.target.checked }
 
   // Debounce utility: delays fn execution until after `delay` ms of inactivity
   _debounce(fn, delay) {
     let timer
-    return (...args) => {
+    const debounced = (...args) => {
       clearTimeout(timer)
       timer = setTimeout(() => fn.apply(this, args), delay)
     }
+    debounced.cancel = () => clearTimeout(timer)
+    return debounced
+  }
+
+  // Centered moving average over `window` points (odd number). Keeps nulls
+  // (gap sentinels) as nulls so the line still breaks at gaps.
+  _smooth(points, window = 3) {
+    if (window < 2) return points
+    const half = Math.floor(window / 2)
+    return points.map((p, i) => {
+      if (p.price == null) return p
+      let sum = 0, n = 0
+      for (let j = i - half; j <= i + half; j++) {
+        const q = points[j]
+        if (q && q.price != null) { sum += q.price; n++ }
+      }
+      return { ...p, price: sum / n }
+    })
   }
 
   // Brazilian number formatter: 1234.56 -> "1.234,56"
@@ -76,7 +102,7 @@ export default class extends Controller {
     // Clear previous
     d3.select(container).select("svg").remove()
 
-    const margin = { top: 20, right: this.showUsdValue ? 60 : 20, bottom: 40, left: 65 }
+    const margin = { top: 20, right: this.showUsdValue ? 60 : 20, bottom: 50, left: 65 }
     const innerWidth = width - margin.left - margin.right
     const innerHeight = height - margin.top - margin.bottom
 
@@ -152,6 +178,8 @@ export default class extends Controller {
       data.push(...rawData)
     }
 
+    const smoothData = this._smooth(data, 5)  // 5-point centered average — trends, not vibrations
+
     // Scales
     const xScale = d3.scaleTime()
       .domain(d3.extent(data, d => d.date))
@@ -182,6 +210,14 @@ export default class extends Controller {
     // Gradient fill
     const gradientId = `area-gradient-${Math.random().toString(36).slice(2, 8)}`
     const defs = svg.append("defs")
+    const clipId = `plot-clip-${Math.random().toString(36).slice(2, 8)}`
+    defs.append("clipPath")
+      .attr("id", clipId)
+      .append("rect")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("width", innerWidth)
+      .attr("height", innerHeight)
     const gradient = defs.append("linearGradient")
       .attr("id", gradientId)
       .attr("x1", "0%").attr("y1", "0%")
@@ -208,8 +244,11 @@ export default class extends Controller {
       .y1(d => yScale(d.price))
       .curve(curveFactory)
 
-    g.append("path")
-      .datum(data)
+    // All data series go in here so they share the axis clip-path.
+    const series = g.append("g").attr("clip-path", `url(#${clipId})`)
+
+    series.append("path")
+      .datum(smoothData)
       .attr("fill", `url(#${gradientId})`)
       .attr("d", area)
 
@@ -220,8 +259,8 @@ export default class extends Controller {
       .y(d => yScale(d.price))
       .curve(curveFactory)
 
-    const linePath = g.append("path")
-      .datum(data)
+    const linePath = series.append("path")
+      .datum(smoothData)
       .attr("fill", "none")
       .attr("stroke", colorPrimary)
       .attr("stroke-width", 2)
@@ -255,7 +294,7 @@ export default class extends Controller {
           .y(d => yScaleUsd(d.usd))
           .curve(d3.curveLinear)
 
-        g.append("path")
+        series.append("path")
           .datum(usdData)
           .attr("fill", "none")
           .attr("stroke", "#1a73e8")
@@ -287,7 +326,7 @@ export default class extends Controller {
         .y(d => yScale(d.value))
         .curve(d3.curveLinear)
 
-      g.append("path")
+      series.append("path")
         .datum(parsed)
         .attr("fill", "none")
         .attr("stroke", color)
@@ -313,7 +352,7 @@ export default class extends Controller {
         .x(d => xScale(d.date))
         .y(d => yScale(d.value))
         .curve(d3.curveMonotoneX)
-      g.append("path")
+      series.append("path")
         .datum(seasonal)
         .attr("fill", "none")
         .attr("stroke", "#b8860b")          // gold — distinct from green price line
@@ -360,10 +399,11 @@ export default class extends Controller {
       const day = String(date.getDate()).padStart(2, "0")
       const month = String(date.getMonth() + 1).padStart(2, "0")
       const year = date.getFullYear()
+      const yearShort = String(year).slice(-2)
 
       // Always show year for long ranges
       if (daySpan > 180) {
-        return `${day}/${month}/${year}`
+        return `${day}/${month}/'${yearShort}`
       }
 
       // For shorter ranges, show year on first tick (if range > 60 days) or year transitions
@@ -373,7 +413,7 @@ export default class extends Controller {
       const isYearChange = prevYear !== null && prevYear !== year
 
       if (isYearChange || (isFirst && showYearOnFirst)) {
-        return `${day}/${month}/${year}`
+        return `${day}/${month}/'${yearShort}`
       }
       return `${day}/${month}`
     }
@@ -382,7 +422,13 @@ export default class extends Controller {
       .attr("transform", `translate(0,${innerHeight})`)
       .call(d3.axisBottom(xScale).tickValues(tickDates).tickFormat(formatTickDate))
       .call(g => g.select(".domain").attr("stroke", colorBorder))
-      .call(g => g.selectAll(".tick text").attr("fill", colorGray400).style("font-size", "10px"))
+      .call(g => g.selectAll(".tick text")
+        .attr("fill", colorGray400)
+        .style("font-size", "10px")
+        .attr("text-anchor", "end")
+        .attr("transform", "rotate(-35)")
+        .attr("dx", "-0.4em")
+        .attr("dy", "0.6em"))
       .call(g => g.selectAll(".tick line").attr("stroke", colorBorder))
 
     g.append("g")
@@ -391,11 +437,16 @@ export default class extends Controller {
       .call(g => g.selectAll(".tick text").attr("fill", colorGray400).style("font-size", "10px"))
       .call(g => g.selectAll(".tick line").attr("stroke", colorBorder))
 
+    // Build a date→smoothed-price lookup so the crosshair dot tracks the visual line.
+    const smoothPriceByDate = new Map(
+      smoothData.filter(d => d.price != null).map(d => [d.date.getTime(), d.price])
+    )
+
     // Interactive crosshair — use only valid (non-gap) data for bisect
-    this._setupCrosshair(g, svg, validData, xScale, yScale, innerWidth, innerHeight, margin, d3)
+    this._setupCrosshair(g, svg, validData, xScale, yScale, innerWidth, innerHeight, margin, d3, smoothPriceByDate)
   }
 
-  _setupCrosshair(g, svg, data, xScale, yScale, innerWidth, innerHeight, margin, d3) {
+  _setupCrosshair(g, svg, data, xScale, yScale, innerWidth, innerHeight, margin, d3, smoothPriceByDate = new Map()) {
     const style = getComputedStyle(document.documentElement)
     const colorPrimary = style.getPropertyValue("--color-primary-light").trim() || "#2e7d32"
 
@@ -434,7 +485,8 @@ export default class extends Controller {
       const d = d1 && (x0 - d0.date > d1.date - x0) ? d1 : d0
 
       const cx = xScale(d.date)
-      const cy = yScale(d.price)
+      const smoothedPrice = smoothPriceByDate.get(d.date.getTime()) ?? d.price
+      const cy = yScale(smoothedPrice)
 
       crosshairGroup.select(".crosshair-v")
         .attr("x1", cx).attr("x2", cx)

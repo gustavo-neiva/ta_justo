@@ -6,15 +6,15 @@ namespace :ceasa do
   task validate_mapping: :environment do
     require Rails.root.join('db/seeds/core_basket.rb')
     
-    fixtures_path = Rails.root.join("spec/fixtures/ceasa")
-    
-    unless Dir.exist?(fixtures_path)
-      puts "⚠️  No fixtures found at #{fixtures_path}"
-      puts "   Create spec/fixtures/ceasa/ and add sample PDFs to validate"
+    fixtures_root = Rails.root.join("test/fixtures/files/ceasa")
+
+    unless Dir.exist?(fixtures_root)
+      puts "⚠️  No fixtures found at #{fixtures_root}"
+      puts "   Create test/fixtures/files/ceasa/ and add sample PDFs to validate"
       exit 0
     end
 
-    pdfs = Dir.glob(fixtures_path.join("*.pdf"))
+    pdfs = Dir.glob(fixtures_root.join("**", "*.pdf"))
     
     if pdfs.empty?
       puts "⚠️  No PDF files found in #{fixtures_path}"
