@@ -42,8 +42,11 @@ class FairPriceVerdictPercentileTest < ActiveSupport::TestCase
 
   test "per_unit percentile reflects today's CEASA position in the series" do
     # Today's CEASA is the highest of 12 → ~92nd percentile (11 below it).
-    res = verdict_for(paid: 100.0) # paid huge so it can't accidentally match
-    assert_equal 92, res.percentile_12m
+    # Freeze clock so all 12 bulletins stay within 12.months.ago window.
+    travel_to(Date.new(2026, 6, 1)) do
+      res = verdict_for(paid: 100.0) # paid huge so it can't accidentally match
+      assert_equal 92, res.percentile_12m
+    end
   end
 
   private

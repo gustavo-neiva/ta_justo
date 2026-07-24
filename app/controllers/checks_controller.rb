@@ -30,20 +30,20 @@ class ChecksController < ApplicationController
 
   def load_core_basket_products
     # Load the checkable products for the dropdown
-    require Rails.root.join('db/seeds/core_basket.rb')
+    require Rails.root.join("db/seeds/core_basket.rb")
     @core_products = CoreBasket.checkable_list
   end
 
   def run_verdict
     @product = Product.find_by(slug: params[:product])
-    
+
     unless @product
       @error = "Produto não encontrado"
       return
     end
 
     @variant = @product.default_variant
-    
+
     unless @variant
       @error = "Produto sem variante padrão configurada"
       return

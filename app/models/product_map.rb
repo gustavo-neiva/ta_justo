@@ -3,8 +3,8 @@ class ProductMap < ApplicationRecord
   belongs_to :variant
 
   validates :market, :section, :raw_product, presence: true
-  validates :raw_product, uniqueness: { 
-    scope: [:market, :section, :raw_tipo],
+  validates :raw_product, uniqueness: {
+    scope: [ :market, :section, :raw_tipo ],
     message: "mapping already exists for this market/section/product/tipo combination"
   }
 

@@ -4,10 +4,27 @@ module CeasaRio
       @matcher = matcher
     end
 
+    # Parse + persist from an ALREADY-ARCHIVED file path. This is the primary
+    # entrypoint from jobs: the PDF is on disk first, then ingested — so a
+    # Bulletin can never exist without its source PDF. Re-parsing from the
+    # archive also validates the archived bytes are intact.
+    def ingest_path(path, source_url:, market: "ceasa-rj")
+      bulletin = CeasaRio::Parser.new(path).parse
+      persist!(bulletin, source_url: source_url, market: market)
+    end
+
+    # Legacy convenience: ingest from raw bytes (writes + cleans a temp).
+    # Prefer #ingest_path from jobs — archive first, then ingest from disk.
     def ingest(pdf_bytes, source_url:, market: "ceasa-rj")
       path = write_temp(pdf_bytes)
-      bulletin = CeasaRio::Parser.new(path).parse
-      
+      ingest_path(path, source_url:, market:)
+    ensure
+      File.delete(path) if path && File.exist?(path)
+    end
+
+    private
+
+    def persist!(bulletin, source_url:, market:)
       # Idempotent - skip if already ingested
       return if Bulletin.exists?(market: market, price_date: bulletin.price_date)
 
@@ -18,10 +35,10 @@ module CeasaRio
           weekday: bulletin.weekday,
           source_url: source_url
         )
-        
+
         bulletin.rows.each do |row|
           variant = @matcher.match(row, market: market)
-          
+
           unless variant
             record_pending(row, market: market, date: bulletin.price_date)
             next
@@ -32,7 +49,7 @@ module CeasaRio
           next if Price.exists?(bulletin: b, variant: variant, raw_unit: row.raw_unit)
 
           unit_normalizer = CeasaRio::UnitNormalizer.new
-          
+
           Price.create!(
             bulletin: b,
             variant: variant,
@@ -51,8 +68,6 @@ module CeasaRio
           )
         end
       end
-    ensure
-      File.delete(path) if path && File.exist?(path)
     end
 
     private
@@ -72,8 +87,8 @@ module CeasaRio
     end
 
     def write_temp(pdf_bytes)
-      require 'tempfile'
-      temp = Tempfile.new(['ceasa', '.pdf'])
+      require "tempfile"
+      temp = Tempfile.new([ "ceasa", ".pdf" ])
       temp.binmode
       temp.write(pdf_bytes)
       temp.close

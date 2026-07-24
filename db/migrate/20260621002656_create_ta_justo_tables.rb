@@ -8,7 +8,7 @@ class CreateTaJustoTables < ActiveRecord::Migration[8.1]
       t.string  :weekday
       t.timestamps
     end
-    add_index :bulletins, [:market, :price_date], unique: true, name: "idx_bulletins_unique"
+    add_index :bulletins, [ :market, :price_date ], unique: true, name: "idx_bulletins_unique"
     add_index :bulletins, :source_url, unique: true
 
     # 2. PRODUCT — canonical, market-AGNOSTIC (~75, derived from CEASA-RJ v1)
@@ -40,7 +40,7 @@ class CreateTaJustoTables < ActiveRecord::Migration[8.1]
       t.boolean :checkable, default: true                     # false = index-only (no vetted weight)
       t.timestamps
     end
-    add_index :variants, [:product_id, :name], unique: true
+    add_index :variants, [ :product_id, :name ], unique: true
 
     # 4. PRODUCT MAP — THE EXPLICIT v1 MAP (data-driven, editable). This is the 100% match.
     #    v1 = 247 tuples for CEASA-RJ (from Appendix C). The `market` string is the seam.
@@ -53,7 +53,7 @@ class CreateTaJustoTables < ActiveRecord::Migration[8.1]
       t.references :variant, null: false, foreign_key: true
       t.timestamps
     end
-    add_index :product_maps, [:market, :section, :raw_product, :raw_tipo],
+    add_index :product_maps, [ :market, :section, :raw_product, :raw_tipo ],
               unique: true, name: "idx_pm_unique_lookup"
 
     # 5. PRODUCT ALIAS — flexible naming (powers search in v1; future regions later). Adapts CropAlias.
@@ -67,7 +67,7 @@ class CreateTaJustoTables < ActiveRecord::Migration[8.1]
       t.timestamps
     end
     add_index :product_aliases, :normalized_name
-    add_index :product_aliases, [:market, :normalized_name]
+    add_index :product_aliases, [ :market, :normalized_name ]
 
     # 6. PRICE — time-series, multi-source-aware (reuses CommodityPrice's original_unit/converted idea)
     create_table :prices do |t|
@@ -87,7 +87,7 @@ class CreateTaJustoTables < ActiveRecord::Migration[8.1]
       t.string    :variation_12m                      # "-21,25%" | "0,55" | nil
       t.timestamps
     end
-    add_index :prices, [:variant_id, :bulletin_id], unique: true, name: "idx_prices_unique"
+    add_index :prices, [ :variant_id, :bulletin_id ], unique: true, name: "idx_prices_unique"
     add_index :prices, :price_per_kg
     add_index :prices, :section
 
@@ -102,7 +102,7 @@ class CreateTaJustoTables < ActiveRecord::Migration[8.1]
       t.integer :occurrence_count, default: 1
       t.timestamps
     end
-    add_index :pending_matches, [:market, :section, :raw_product, :raw_tipo], 
+    add_index :pending_matches, [ :market, :section, :raw_product, :raw_tipo ],
               unique: true, name: "idx_pending_unique"
   end
 end

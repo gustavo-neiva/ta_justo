@@ -34,4 +34,21 @@ module ApplicationHelper
     when :expensive then "época cara"
     end
   end
+
+  # Renders the época pill for the /precos index. Returns empty string when
+  # no timing signal is available (thin history, no tag shown).
+  def epoca_pill(timing)
+    return "".html_safe unless timing
+
+    bucket_class = {
+      cheap:     "epoca-pill--cheap",
+      normal:    "epoca-pill--normal",
+      expensive: "epoca-pill--expensive"
+    }[timing.bucket]
+
+    emoji = { cheap: "📉", normal: "📊", expensive: "📈" }[timing.bucket]
+    text  = timing.qualifier ? "#{timing.qualifier} #{timing.label}" : timing.label
+
+    content_tag(:span, "#{emoji} #{text}", class: "epoca-pill #{bucket_class}")
+  end
 end

@@ -1,5 +1,5 @@
-require 'open-uri'
-require 'nokogiri'
+require "open-uri"
+require "nokogiri"
 
 module CeasaRio
   class Crawler

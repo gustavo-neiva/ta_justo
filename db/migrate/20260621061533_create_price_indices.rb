@@ -7,6 +7,6 @@ class CreatePriceIndices < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :price_indices, [:index_name, :reference_month], unique: true
+    add_index :price_indices, [ :index_name, :reference_month ], unique: true
   end
 end

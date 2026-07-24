@@ -70,4 +70,4 @@ end
 #   gem "selenium-webdriver"
 # end
 
-gem "webmock", "~> 3.26", :groups => [:development, :test]
+gem "webmock", "~> 3.26", groups: [ :development, :test ]

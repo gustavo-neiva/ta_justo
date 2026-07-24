@@ -7,7 +7,7 @@ puts "Seeding product maps..."
 def map_ceasa(section, raw_product, raw_tipo, product_slug, variant_name)
   product = Product.find_by!(slug: product_slug)
   variant = product.variants.find_by!(name: variant_name)
-  
+
   ProductMap.find_or_create_by!(
     market: "ceasa-rj",
     section: section,

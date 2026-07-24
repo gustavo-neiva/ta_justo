@@ -41,66 +41,76 @@
   <% else %>
     <%= turbo_frame_tag "precos-list", target: "_top" do %>
       <div class="price-sections">
-      <% @sections.each do |section_num, section_data| %>
-        <div class="price-section">
-          <div class="price-section-header">
-            <h2><%= section_data[:name] %></h2>
-            <span class="badge secondary"><%= section_data[:products].size %> produtos</span>
-          </div>
-
-          <div class="price-list">
-            <div class="price-list-header">
-              <span class="col-product">Produto</span>
-              <span class="col-price">Preço/kg</span>
-              <span class="col-variation">Var. 12 meses</span>
+        <% @sections.each do |_section_num, section_data| %>
+          <div class="price-section">
+            <div class="price-section-header">
+              <h2><%= section_data[:name] %></h2>
+              <span class="badge secondary"><%= section_data[:products].size %> produtos</span>
             </div>
 
-            <% section_data[:products].each do |product, prices| %>
-              <% prices.each_with_index do |price, idx| %>
-                <%
-                  display_price = if price.price_per_kg
-                    "R$ #{number_with_precision(price.price_per_kg, precision: 2)}/kg"
-                  elsif price.modal
-                    "R$ #{number_with_precision(price.modal, precision: 2)}"
-                  else
-                    "S/C"
-                  end
+            <div class="price-list">
+              <div class="price-list-header">
+                <span class="col-product">Produto</span>
+                <span class="col-price">Preço/kg</span>
+                <span class="col-epoca">Época</span>
+              </div>
 
-                  variation = price.variation_12m.to_s.strip
-                  variation_class = if variation.start_with?('-')
-                    'negative'
-                  elsif variation.match?(/^\d/)
-                    'positive'
-                  else
-                    'neutral'
-                  end
-
-                  variant_label = price.variant.name
-                %>
-
-                <%= link_to product_path(product.slug), class: "price-row" do %>
-                  <span class="product-name">
-                    <% if idx == 0 %>
-                      <%= product.name %>
+              <% section_data[:products].each do |product, prices| %>
+                <% if prices.size > 1 %>
+                  <div class="product-group">
+                    <div class="product-group-header">
+                      <span class="product-group-name"><%= product.name %></span>
+                      <span class="badge badge-sm product-group-count"><%= prices.size %> tipos</span>
+                    </div>
+                    <% prices.each do |price| %>
+                      <%
+                        display_price = if price.price_per_kg
+                          "R$ #{number_with_precision(price.price_per_kg, precision: 2)}/kg"
+                        elsif price.modal
+                          "R$ #{number_with_precision(price.modal, precision: 2)}"
+                        else
+                          "S/C"
+                        end
+                      %>
+                      <%= link_to product_path(product.slug), class: "price-row price-row--variant" do %>
+                        <span class="col-product variant-name"><%= price.variant.name %></span>
+                        <span class="col-price price-value"><%= display_price %></span>
+                        <span class="col-epoca"><%= epoca_pill(section_data[:timing][price.variant.id]) %></span>
+                      <% end %>
                     <% end %>
-                    <% if prices.size > 1 %>
-                      <span class="variant-label"><%= variant_label %></span>
-                    <% end %>
-                  </span>
-                  <span class="price-value"><%= display_price %></span>
-                  <% unless variation.empty? || variation == 'S/C' %>
-                    <span class="variation-chip <%= variation_class %>">
-                      <%= variation %>
-                    </span>
+                  </div>
+                <% else %>
+                  <%
+                    price = prices.first
+                    display_price = if price.price_per_kg
+                      "R$ #{number_with_precision(price.price_per_kg, precision: 2)}/kg"
+                    elsif price.modal
+                      "R$ #{number_with_precision(price.modal, precision: 2)}"
+                    else
+                      "S/C"
+                    end
+                  %>
+                  <%= link_to product_path(product.slug), class: "price-row" do %>
+                    <span class="col-product product-name"><%= product.name %></span>
+                    <span class="col-price price-value"><%= display_price %></span>
+                    <span class="col-epoca"><%= epoca_pill(section_data[:timing][price.variant.id]) %></span>
                   <% end %>
                 <% end %>
               <% end %>
-            <% end %>
+            </div>
           </div>
-        </div>
-      <% end %>
-    </div>
+        <% end %>
+      </div>
     <% end %>
+
+    <div class="epoca-legend">
+      <span>📉 Época barata</span>
+      <span class="epoca-legend-sep">·</span>
+      <span>📊 Preço normal</span>
+      <span class="epoca-legend-sep">·</span>
+      <span>📈 Época cara</span>
+      <span class="epoca-legend-info">Calculado em reais de hoje (IPCA). Tags marcadas como "tipicamente" são baseadas em sazonalidade histórica, não em dados deflacionados.</span>
+    </div>
 
     <div style="margin-top: var(--space-xl); text-align: center;">
       <%= link_to "← Voltar ao checker", root_path, class: "button secondary" %>

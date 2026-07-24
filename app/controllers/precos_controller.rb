@@ -17,7 +17,7 @@ class PrecosController < ApplicationController
 
     # Group prices by section (1-6 for produce, skip 7-fish for v1 default view)
     @sections = {}
-    
+
     (1..6).each do |section_num|
       section_prices = @latest_bulletin.prices
                                        .where(section: section_num)
@@ -25,8 +25,8 @@ class PrecosController < ApplicationController
                                        .joins(:variant)
                                        .includes(variant: :product)
                                        .where(products: { fair_relevant: true })
-                                       .order('products.name ASC')
-      
+                                       .order("products.name ASC")
+
       next if section_prices.empty?
 
       # Group by product so repeating names are collapsed
@@ -41,9 +41,15 @@ class PrecosController < ApplicationController
       end
       next if products_with_prices.empty?
 
+      timing_by_variant = {}
+      products_with_prices.each do |_product, prices|
+        prices.each { |p| timing_by_variant[p.variant.id] = BuyTiming.resolve(p.variant) }
+      end
+
       @sections[section_num] = {
         name: section_name(section_num),
-        products: products_with_prices
+        products: products_with_prices,
+        timing: timing_by_variant
       }
     end
   end

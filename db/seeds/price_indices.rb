@@ -51,5 +51,5 @@ rescue PriceIndex::Fetcher::APIError => e
   puts "   Price indices will be seeded later by the job or manual re-run."
 rescue => e
   puts "❌ Unexpected error seeding price indices: #{e.message}"
-  puts "   #{e.backtrace.first(5).join(\"\\n\")}"
+  puts "  #{e.backtrace.first(5).join("\n")}"
 end

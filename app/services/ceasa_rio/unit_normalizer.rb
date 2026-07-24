@@ -21,7 +21,7 @@ module CeasaRio
       # GENERAL: extract first kg weight → modal / weight
       m = unit.match(KG_RE)
       return nil unless m
-      weight = m[1].gsub(',', '.').to_f
+      weight = m[1].gsub(",", ".").to_f
       weight.zero? ? nil : (modal_price / weight).round(2)
     end
 

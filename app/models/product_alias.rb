@@ -9,8 +9,8 @@ class ProductAlias < ApplicationRecord
   # Normalize a name (diacritic-strip + uppercase) - adapted from CropAlias
   def self.normalize(name)
     name.to_s.strip.unicode_normalize(:nfkd)
-      .encode('ASCII', invalid: :replace, undef: :replace, replace: '')
-      .gsub(/\s+/, ' ')
+      .encode("ASCII", invalid: :replace, undef: :replace, replace: "")
+      .gsub(/\s+/, " ")
       .upcase
   end
 

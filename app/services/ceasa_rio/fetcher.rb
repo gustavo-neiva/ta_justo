@@ -1,5 +1,5 @@
-require 'net/http'
-require 'uri'
+require "net/http"
+require "uri"
 
 module CeasaRio
   class Fetcher
@@ -19,7 +19,7 @@ module CeasaRio
           next
         end
         body = fetch_and_validate(url_for(date))
-        return [date, body] if body
+        return [ date, body ] if body
         date -= 1
       end
       nil

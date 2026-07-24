@@ -18,7 +18,7 @@ def ensure_variant(product, name, attrs = {})
     v.checkable = attrs.fetch(:checkable, true)
     v.default_for_product = false
   end
-  
+
   # Update attributes if they've changed
   variant.update!(attrs.except(:default)) if variant.persisted?
   variant
@@ -865,14 +865,14 @@ fish_names.each do |fish_name|
   slug = fish_name.downcase.gsub(/[áàâã]/, 'a').gsub(/[éèê]/, 'e').gsub(/[íì]/, 'i')
                   .gsub(/[óòôõ]/, 'o').gsub(/[úùû]/, 'u').gsub(/ç/, 'c')
                   .gsub(/\s+/, '-').gsub(/[^a-z0-9-]/, '')
-  
+
   product = Product.find_or_create_by!(slug: slug) do |p|
     p.name = fish_name
     p.category = "peixe"
     p.section = 7
     p.fair_relevant = false
   end
-  
+
   variant = ensure_variant(product, "Comum", checkable: false)
   product.update!(default_variant: variant)
 end

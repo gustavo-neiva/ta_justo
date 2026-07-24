@@ -82,7 +82,7 @@ class SeasonalityCalculator
     dates = rows.minimum("bulletins.price_date")
     max   = rows.maximum("bulletins.price_date")
     return nil unless dates && max
-    [dates, max]
+    [ dates, max ]
   end
 
   def median(arr)

@@ -36,3 +36,9 @@
 # pi-loop lock file
 .pi-loop.json.lock
 
+.ratchet/
+.ratchet.conf
+
+# Local agent/tool dirs — config lives in AGENTS.md, not in the tree
+/.claude/
+/.gitnexus/

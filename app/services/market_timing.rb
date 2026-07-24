@@ -21,7 +21,7 @@ class MarketTiming
 
   BUCKETS = {
     cheap: "época barata",
-    normal: "preço normal", 
+    normal: "preço normal",
     expensive: "época cara"
   }.freeze
 

@@ -5,15 +5,15 @@ module CeasaRio
 
       # Section banner starters (checked BEFORE drop patterns, case/accent-insensitive prefix match)
       SECTION_STARTERS = [
-        [/\Afolhas[,\s]/i,                       4],
-        [/\Afrutos\b/i,                           3],
-        [/\Ara[ií]zes[,\s]/i,                    5],
-        [/\Afrutas nacionais\b/i,                 1],
-        [/\Afrutas importadas\b/i,                2],
-        [/\Apescados\b/i,                         7],
-        [/\Aflores e plantas ornamentais\b/i,     nil],
-        [/\Aoutros g[eê]neros/i,                 nil],
-        [/\Aoutros\b/i,                           nil],
+        [ /\Afolhas[,\s]/i,                       4 ],
+        [ /\Afrutos\b/i,                           3 ],
+        [ /\Ara[ií]zes[,\s]/i,                    5 ],
+        [ /\Afrutas nacionais\b/i,                 1 ],
+        [ /\Afrutas importadas\b/i,                2 ],
+        [ /\Apescados\b/i,                         7 ],
+        [ /\Aflores e plantas ornamentais\b/i,     nil ],
+        [ /\Aoutros g[eê]neros/i,                 nil ],
+        [ /\Aoutros\b/i,                           nil ]
       ].freeze
 
       DROP_RE = [
@@ -33,7 +33,7 @@ module CeasaRio
         /\ARizomas\z/i,
         /\A20\s+Kg\)\z/i,               # paren continuation: "20 Kg)"
         /\A25Kg\)\z/i,                   # paren continuation: "25Kg)"
-        /\A\d+\z/,                           # stray digit fragment from broken price line (e.g. "140,0" split to "0")
+        /\A\d+\z/                           # stray digit fragment from broken price line (e.g. "140,0" split to "0")
       ].freeze
 
       WEEKDAYS_PT = %w[domingo segunda-feira terça-feira quarta-feira quinta-feira sexta-feira sábado].freeze
@@ -120,12 +120,12 @@ module CeasaRio
             row = if has_paren?(line)
                     # Self-contained: name before "(", packaging from parens
                     parse_standalone(line, section)
-                  elsif current_product
+            elsif current_product
                     # Non-starred tipo child (e.g. PIMENTA children)
                     parse_nonstarred_child(line, section, current_product, current_pkg)
-                  else
+            else
                     parse_standalone(line, section)
-                  end
+            end
             rows << row if row
             # A self-contained row with parens resets the header context
             current_product = nil if has_paren?(line)
@@ -278,20 +278,20 @@ module CeasaRio
         if prices.size == 3
           prices.map { |p| p.gsub(",", ".").to_f }
         else
-          [nil, nil, nil]
+          [ nil, nil, nil ]
         end
       end
 
       # Split "PRODUCT NAME (packaging...)" → [name, "packaging..."] or [text, nil]
       def split_name_and_pkg(text)
-        return [nil, nil] if text.nil? || text.strip.empty?
+        return [ nil, nil ] if text.nil? || text.strip.empty?
         idx = text.index("(")
         if idx
           name = text[0...idx].strip
           pkg  = text[idx..].strip
-          [name.empty? ? nil : name, pkg.empty? ? nil : pkg]
+          [ name.empty? ? nil : name, pkg.empty? ? nil : pkg ]
         else
-          [text.strip, nil]
+          [ text.strip, nil ]
         end
       end
 
@@ -311,7 +311,7 @@ module CeasaRio
           end
           name_toks << t unless found
         end
-        [name_toks, code_tok, rest]
+        [ name_toks, code_tok, rest ]
       end
 
       # Convert legacy packaging string into a modern-style raw_unit the UnitNormalizer handles.

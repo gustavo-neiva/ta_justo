@@ -5,7 +5,7 @@ module CeasaRio
                           :variation_12m, :min, :modal, :max, :price_per_kg, keyword_init: true)
 
     def initialize(pdf_path)
-      @text = `pdftotext -layout "#{pdf_path}" -`
+      @text = IO.popen([ "pdftotext", "-layout", pdf_path.to_s, "-" ], err: "/dev/null", &:read)
     end
 
     def parse

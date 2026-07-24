@@ -23,7 +23,7 @@ module TaJusto
     #
     config.time_zone = "Brasilia"
     config.i18n.default_locale = :"pt-BR"
-    config.i18n.available_locales = [:"pt-BR"]
+    config.i18n.available_locales = [ :"pt-BR" ]
     config.active_job.queue_adapter = :solid_queue
   end
 end

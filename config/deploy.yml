@@ -1,3 +1,14 @@
+# TODO(prod) — scaffold only; do NOT run `bin/kamal setup` until these are filled:
+#   1. Droplet IP     → replace 192.168.0.1 in servers.web with the real DigitalOcean droplet IP.
+#   2. Registry creds → point registry.server at a real registry (e.g. registry.digitalocean.com/ta_justo)
+#                       and set username + KAMAL_REGISTRY_PASSWORD in .kamal/secrets.
+#   3. Domain + SSL   → register tajusto.com.br, then uncomment the proxy.ssl block below (set proxy.host)
+#                       and enable config.assume_ssl + config.force_ssl in config/environments/production.rb.
+#
+# Placeholder backup cron (reminder): once live, ship SQLite + storage/ceasa/raw/ off-server daily, e.g.
+#   0 3 * * * tar czf - /rails/storage/*.sqlite3 /rails/storage/ceasa/raw | \
+#             aws s3 cp - s3://tajusto-backups/$(date +\%F).tgz --endpoint-url https://... 
+
 # Name of your application. Used to uniquely configure containers.
 service: ta_justo
 

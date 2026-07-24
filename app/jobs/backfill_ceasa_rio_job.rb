@@ -14,28 +14,7 @@ class BackfillCeasaRioJob < ApplicationJob
       body = CeasaRio::Fetcher.new.fetch_and_validate(url)
       next unless body
 
-      begin
-        tempfile = Tempfile.new(["ceasa", ".pdf"])
-        tempfile.binmode
-        tempfile.write(body)
-        tempfile.close
-
-        bulletin = CeasaRio::Parser.new(tempfile.path).parse
-
-        # Skip anything before the availability floor (pre-2022 not published)
-        if bulletin.price_date < LEGACY_MIN
-          Rails.logger.info("Skipping pre-floor bulletin: #{bulletin.price_date} (#{url})")
-          next
-        end
-
-        archive(body, bulletin.price_date)
-        CeasaRio::Loader.new.ingest(body, source_url: url, market: "ceasa-rj")
-        Rails.logger.info("Backfilled #{bulletin.price_date}")
-      rescue => e
-        Rails.logger.error("Failed to process #{url}: #{e.message}")
-      ensure
-        tempfile&.close!
-      end
+      process_url(url, body)
     end
 
     Rails.logger.info("Backfill complete")
@@ -43,10 +22,26 @@ class BackfillCeasaRioJob < ApplicationJob
 
   private
 
-  def archive(body, date)
-    dir = Rails.root.join("storage", "ceasa", "raw")
-    FileUtils.mkdir_p(dir)
-    path = dir.join("#{date.strftime('%Y-%m-%d')}.pdf")
-    File.binwrite(path, body) unless File.exist?(path)
+  def process_url(url, body)
+    # Block form auto-unlinks the tempfile even on exception — no leak.
+    bulletin = Tempfile.create([ "ceasa", ".pdf" ]) do |tmp|
+      tmp.binmode
+      tmp.write(body)
+      tmp.close
+      CeasaRio::Parser.new(tmp.path).parse
+    end
+
+    # Skip anything before the availability floor (pre-2022 not published)
+    if bulletin.price_date < LEGACY_MIN
+      Rails.logger.info("Skipping pre-floor bulletin: #{bulletin.price_date} (#{url})")
+      return
+    end
+
+    # Archive FIRST, then ingest from disk — source PDF always on hand.
+    path = CeasaRio::Archiver.write(body, bulletin.price_date)
+    CeasaRio::Loader.new.ingest_path(path, source_url: url, market: "ceasa-rj")
+    Rails.logger.info("Backfilled #{bulletin.price_date}")
+  rescue => e
+    Rails.logger.error("Failed to process #{url}: #{e.message}")
   end
 end

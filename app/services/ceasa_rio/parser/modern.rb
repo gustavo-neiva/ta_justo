@@ -4,9 +4,9 @@ module CeasaRio
       PRICE       = /\A\d{1,4},\d{2}\z/
       UNIT_ANCHOR = /\A(Cx|Sc|Unid|Preg|Ama|Mol|Pct|kg|Saco|Caixa)\b/i
       SECTION_RE  = /\A\s*(\d+)\.\s+(.+?)\s*\z/
-      DROP_RE     = [/SECRETARIA DE AGRICULTURA/i, /CENTRAIS DE ABASTECIMENTO/i,
+      DROP_RE     = [ /SECRETARIA DE AGRICULTURA/i, /CENTRAIS DE ABASTECIMENTO/i,
                      /Dia Semana:/i, /PRODUTOS\s+TIPO/i, /VARIAÇÃO/i, /ULTIMOS/i,
-                     /12 MESES/i, /Fonte:\s*CEASA/i, /Página:/i, /\AHASTE\z/, /\ATUBÉRCULO E RIZOMA\z/]
+                     /12 MESES/i, /Fonte:\s*CEASA/i, /Página:/i, /\AHASTE\z/, /\ATUBÉRCULO E RIZOMA\z/ ]
 
       def initialize(text)
         @text = text
@@ -61,7 +61,7 @@ module CeasaRio
         if prices.size == 3
           var_tok = toks.pop || "S/C"
           variation = var_tok
-          min, modal, max = prices.map { |p| p.gsub(',', '.').to_f }
+          min, modal, max = prices.map { |p| p.gsub(",", ".").to_f }
         elsif prices.empty? && toks.last == "S/C"
           toks.pop
           variation = nil; min = modal = max = nil

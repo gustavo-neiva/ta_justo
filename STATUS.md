@@ -77,11 +77,11 @@
 - Open http://localhost:3000 in browser at 375px width
 - Check checker form, verdict display, `/precos` table scroll, product page
 
-### C3: Deploy
-- Register `tajusto.com.br`
-- Fill `__DROPLET_IP__` in `config/deploy.yml`, run `bin/kamal setup`
-- SSL auto-provisioned by Kamal/Thruster
-- Daily SQLite backup cron + `storage/ceasa/raw/` backup
+### C3: Deploy — scaffold ready, awaiting domain + droplet
+- `config/deploy.yml` is an internally consistent **scaffold** (placeholders flagged by the `# TODO(prod)` block); NOT real-configured. No server is contacted.
+- Remaining to go live: register `tajusto.com.br` → provision DigitalOcean droplet → fill the three `TODO(prod)` inputs (droplet IP, registry creds, domain + `proxy.ssl`) → `bin/kamal setup` → verify `/up`.
+- SSL auto-provisioned by Kamal/Thruster once `proxy.ssl` is enabled + `assume_ssl`/`force_ssl` flipped in `production.rb`.
+- Backup cron: placeholder reminder lives in deploy.yml — daily SQLite + `storage/ceasa/raw/` off-server backup (not yet wired).
 
 ---
 

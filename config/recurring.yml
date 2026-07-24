@@ -25,6 +25,12 @@ production:
     class: BackfillCeasaRioJob
     queue: default
     schedule: every Sunday at 4am America/Sao_Paulo
+
+  # Heal the local PDF archive for bulletins missing a source PDF
+  ceasa_archive_backfill:
+    class: CeasaArchiveBackfillJob
+    queue: default
+    schedule: every Sunday at 6am America/Sao_Paulo
   
   # Refresh price indices (IPCA + INPC) every Sunday at 5am
   refresh_price_indices:

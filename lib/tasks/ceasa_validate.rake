@@ -4,8 +4,8 @@
 namespace :ceasa do
   desc "Validate parser+map against sample PDFs — fails if any CORE-BASKET row unmapped"
   task validate_mapping: :environment do
-    require Rails.root.join('db/seeds/core_basket.rb')
-    
+    require Rails.root.join("db/seeds/core_basket.rb")
+
     fixtures_root = Rails.root.join("test/fixtures/files/ceasa")
 
     unless Dir.exist?(fixtures_root)
@@ -15,7 +15,7 @@ namespace :ceasa do
     end
 
     pdfs = Dir.glob(fixtures_root.join("**", "*.pdf"))
-    
+
     if pdfs.empty?
       puts "⚠️  No PDF files found in #{fixtures_path}"
       puts "   Add sample PDFs to validate the mapping"
@@ -32,19 +32,19 @@ namespace :ceasa do
 
     pdfs.each do |pdf_path|
       filename = File.basename(pdf_path)
-      
+
       begin
         bulletin = CeasaRio::Parser.new(pdf_path).parse
         matcher = CeasaRio::VariantMatcher.new
-        
+
         bulletin.rows.each do |row|
           total_rows += 1
           variant = matcher.match(row, market: "ceasa-rj")
-          
+
           unless variant
             total_unmapped += 1
             msg = "#{filename} | §#{row.section} #{row.raw_product} | #{row.raw_tipo} | #{row.raw_unit}"
-            
+
             if CoreBasket.includes_raw?(row)
               core_unmapped << msg
             else
