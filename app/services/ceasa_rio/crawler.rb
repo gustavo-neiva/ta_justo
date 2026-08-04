@@ -11,7 +11,7 @@ module CeasaRio
       since ||= latest_archived_date
       puts "Fetching hub page..."
       puts "Only crawling months since #{since}" if since
-      
+
       cota  = Nokogiri::HTML(fetch_with_timeout(HUB))
       years = parse_year_tabs(cota)
       puts "Found #{years.size} years"
@@ -19,7 +19,7 @@ module CeasaRio
       years.each do |year, year_url|
         year_num = year.to_i
         next if since && year_num < since.year
-        
+
         puts "Fetching year #{year}..."
         months = parse_month_links(Nokogiri::HTML(fetch_with_timeout(year_url)))
         puts "  Found #{months.size} months"
@@ -28,7 +28,7 @@ module CeasaRio
             month_num = month_index(month_name)
             next if month_num && month_num < since.month
           end
-          
+
           puts "  Crawling #{month_name}..."
           urls.concat(paginate_pdfs(month_url))
         end
@@ -70,18 +70,18 @@ module CeasaRio
         print "    Page #{page}..."
         html = Nokogiri::HTML(fetch_with_timeout(page_url))
         found = html.css("a[href*='arquivos_paginas'][href$='.pdf']").map { |a| URI.join(HUB, a["href"]).to_s }
-        
+
         if found.empty?
           puts " no PDFs, stopping"
           break
         end
-        
+
         new_urls = found.reject { |u| seen.include?(u) }
         if new_urls.empty?
           puts " all duplicates, stopping"
           break
         end
-        
+
         puts " found #{found.size} PDFs (#{new_urls.size} new)"
         new_urls.each { |u| seen.add(u) }
         urls.concat(new_urls)
@@ -99,7 +99,7 @@ module CeasaRio
     def latest_archived_date
       files = Dir["#{CeasaRio::Archiver.raw_dir}/*.pdf"]
       return nil if files.empty?
-      
+
       dates = files.map { |f| File.basename(f, ".pdf") }
                    .map { |d| Date.parse(d) rescue nil }
                    .compact

@@ -1,0 +1,2 @@
+#!/bin/sh
+bin/rubocop --autocorrect --fail-level error
