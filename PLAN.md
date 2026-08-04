@@ -162,7 +162,7 @@ bin/rubocop && bin/rails test
 
 ## Phase 2 — UI/UX & CSS Optimizations (Seasonality toggle, Prices pills)
 
-- [IN PROGRESS] T2.1 (hard, serial) Toggle the seasonality line via CSS class, not a D3 re-render
+- [x] T2.1 (hard, serial) Toggle the seasonality line via CSS class, not a D3 re-render
       touches: app/javascript/controllers/d3_line_chart_controller.js, app/views/products/_chart.html.erb,
                app/assets/stylesheets/components/chart.css
       do: Today `toggleSeasonal` flips `showSeasonalValue`, and `showSeasonalValueChanged()` calls `this.draw()` —
@@ -194,7 +194,7 @@ bin/rubocop && bin/rails test
       constraints: keep the initial-render default (line visible when checkbox checked). Do not remove the seasonal
           drawing code — only ungate it and class it. No JS test runner: the grep self-check is the gate.
 
-- [ ] T2.2 (hard, serial) Fix época pill clipping — redesign the /precos row grid so pills never truncate
+- [IN PROGRESS] T2.2 (hard, serial) Fix época pill clipping — redesign the /precos row grid so pills never truncate
       touches: app/assets/stylesheets/domain/ta_justo.css, app/views/precos/index.html.erb
       do: The 3-col grid `1fr 130px 145px` gives época a fixed 145px; "tipicamente preço normal" plus emoji
           overflows and is clipped (screenshot). Redesign for legibility (req 4): (1) widen and left-align the

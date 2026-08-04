@@ -25,6 +25,9 @@
 .legend-seasonal { background: repeating-linear-gradient(90deg, #b8860b 0 6px, transparent 6px 9px); }
 .legend-toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
 
+/* ── Seasonality toggle (hidden via CSS, no D3 redraw) ────── */
+.seasonal-hidden .seasonal-line { display: none; }
+
 /* ── D3 tooltip (used by d3_line_chart_controller) ────────── */
 .d3-tooltip {
   position: absolute; pointer-events: none; background: rgba(33, 33, 33, 0.92);

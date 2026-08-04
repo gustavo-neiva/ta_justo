@@ -51,8 +51,9 @@ export default class extends Controller {
   showUsdValueChanged() { if (this._connected) this.draw() }
   showSma7ValueChanged() { if (this._connected) this.draw() }
   showSma30ValueChanged() { if (this._connected) this.draw() }
-  showSeasonalValueChanged() { if (this._connected) this.draw() }
-  toggleSeasonal(event) { this.showSeasonalValue = event.target.checked }
+  toggleSeasonal(event) {
+    this.chartTarget.classList.toggle("seasonal-hidden", !event.target.checked)
+  }
 
   // Debounce utility: delays fn execution until after `delay` ms of inactivity
   _debounce(fn, delay) {
@@ -344,7 +345,7 @@ export default class extends Controller {
     }
 
     // Seasonality overlay: typical (median) price per calendar month.
-    if (this.showSeasonalValue && this.seasonalValue.length > 1) {
+    if (this.seasonalValue.length > 1) {
       const seasonal = this.seasonalValue
         .map(d => ({ date: new Date(`${d.date}T12:00:00Z`), value: d.price }))
         .filter(d => d.value != null)
@@ -354,6 +355,7 @@ export default class extends Controller {
         .curve(d3.curveMonotoneX)
       series.append("path")
         .datum(seasonal)
+        .attr("class", "seasonal-line")
         .attr("fill", "none")
         .attr("stroke", "#b8860b")          // gold — distinct from green price line
         .attr("stroke-width", 2)
