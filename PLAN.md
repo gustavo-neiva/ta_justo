@@ -194,7 +194,7 @@ bin/rubocop && bin/rails test
       constraints: keep the initial-render default (line visible when checkbox checked). Do not remove the seasonal
           drawing code — only ungate it and class it. No JS test runner: the grep self-check is the gate.
 
-- [IN PROGRESS] T2.2 (hard, serial) Fix época pill clipping — redesign the /precos row grid so pills never truncate
+- [x] T2.2 (hard, serial) Fix época pill clipping — redesign the /precos row grid so pills never truncate
       touches: app/assets/stylesheets/domain/ta_justo.css, app/views/precos/index.html.erb
       do: The 3-col grid `1fr 130px 145px` gives época a fixed 145px; "tipicamente preço normal" plus emoji
           overflows and is clipped (screenshot). Redesign for legibility (req 4): (1) widen and left-align the
@@ -225,7 +225,7 @@ bin/rubocop && bin/rails test
 
 ## Phase 3 — Localization & Branding (pt-BR pass, Footer/About, Console Easter Egg)
 
-- [ ] T3.1 (normal, serial) Remove the "checker" anglicism from all user-facing copy (pt-BR pass)
+- [IN PROGRESS] T3.1 (normal, serial) Remove the "checker" anglicism from all user-facing copy (pt-BR pass)
       touches: app/views/products/show.html.erb, app/views/checks/show.html.erb,
                app/views/precos/index.html.erb, app/views/pages/sobre.html.erb,
                app/controllers/checks_controller.rb, config/routes.rb
