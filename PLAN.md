@@ -318,7 +318,7 @@ bin/rubocop && bin/rails test
       constraints: external link must carry rel="noopener noreferrer"; no layout redesign. Add branding_test asserting
           both the footer partial and /sobre contain the name + href.
 
-- [IN PROGRESS] T3.4 (normal) Add the cornucopia console-log easter egg
+- [x] T3.4 (normal) Add the cornucopia console-log easter egg
       touches: app/javascript/application.js
       do: Append a console banner easter egg (req 6). `app/javascript/application.js` currently reads EXACTLY these
           four lines (plus trailing newline):
@@ -354,7 +354,7 @@ bin/rubocop && bin/rails test
       constraints: no new imports; keep the existing four lines untouched and only append. No JS test runner: the
           grep self-check is the gate.
 
-- [ ] T3.5 (normal) Update README to document the new features (deflated chart, filter integrity, pt-BR, branding)
+- [IN PROGRESS] T3.5 (normal) Update README to document the new features (deflated chart, filter integrity, pt-BR, branding)
       touches: README.md
       do: The README describes the three surfaces but not the changes this plan ships. Make these EXACT edits so a
           reader (and future agents) know the current behavior:
