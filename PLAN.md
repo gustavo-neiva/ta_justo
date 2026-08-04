@@ -354,7 +354,7 @@ bin/rubocop && bin/rails test
       constraints: no new imports; keep the existing four lines untouched and only append. No JS test runner: the
           grep self-check is the gate.
 
-- [IN PROGRESS] T3.5 (normal) Update README to document the new features (deflated chart, filter integrity, pt-BR, branding)
+- [x] T3.5 (normal) Update README to document the new features (deflated chart, filter integrity, pt-BR, branding)
       touches: README.md
       do: The README describes the three surfaces but not the changes this plan ships. Make these EXACT edits so a
           reader (and future agents) know the current behavior:

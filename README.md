@@ -19,8 +19,9 @@ Three surfaces:
    markup vs. wholesale and **when in the year** to buy (seasonality).
 2. **`/precos` — Today's CEASA Index** — Today's atacado prices by section,
    with 12-month variation.
-3. **`/produtos/:slug` — Product Detail** — Price-history line chart +
-   seasonality chart + verdict calculator.
+3. **`/produtos/:slug` — Product Detail** — Inflation-adjusted (IPCA, R$ de hoje)
+   price-history line chart + seasonality overlay (toggled via CSS, no redraw) +
+   verdict calculator. Chart filters (period / variant) preserve all other selected filters.
 
 **Not a SaaS.** Free, droplet-hosted, portfolio-quality, genuinely useful.
 One city, one source, one question.
@@ -66,6 +67,8 @@ A fair-price verdict is decomposed into composable value objects, each tested:
 - **`Markup`** — shopper price vs. wholesale band
 - **`MarketTiming`** + **`BuyTiming`** — is now a good moment in the season?
 - **`PriceHistory`** + **`SeasonalityCalculator`** — percentile bands & trends
+- **`ChartSeries`** — detail-chart series; deflates to real terms (IPCA série 1737, base = latest
+  published month, forward-filled) with graceful nominal fallback when the index is missing/stale
 - **`PackSize`** / **`UnitNormalizer`** — multi-packaging & unit edge cases
 
 ---
@@ -118,5 +121,7 @@ PDF parsing shells out to `pdftotext -layout` (poppler) — a hard dependency.
 Portfolio project. Not for commercial use.
 
 ---
+
+Feito por [Luiz Gustavo Zincone Neiva](https://gustavoneiva.dev).
 
 **Built with care in Rio de Janeiro 🇧🇷**
