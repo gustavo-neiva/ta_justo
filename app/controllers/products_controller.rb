@@ -41,7 +41,7 @@ class ProductsController < ApplicationController
     @variants = @product.variants.order(:name)
 
     # Chart series (Phase 2 fills these helpers in)
-    @chart_data    = ChartSeries.new(@variant, period: @period).points
+    @chart_data    = ChartSeries.new(@variant, period: @period, deflated: true).points
     @seasonal_data = SeasonalityCalculator.new(@variant).monthly_curve
 
     # Two-axis plan: MarketTiming (paid-independent — always shown on detail page)

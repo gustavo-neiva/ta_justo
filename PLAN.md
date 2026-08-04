@@ -135,7 +135,7 @@ bin/rubocop && bin/rails test
       constraints: reuse the 90-day stale rule from PriceHistory; no new gem; default deflated:false unchanged.
           Add chart_series_test cases: (a) deflated scales past prices up, (b) no-index → nominal, (c) stale → nominal.
 
-- [IN PROGRESS] T1.3 (normal, serial) Render the chart in real terms and label it as such
+- [x] T1.3 (normal, serial) Render the chart in real terms and label it as such
       touches: app/controllers/products_controller.rb, app/views/products/_chart.html.erb
       do: With T1.2 shipped, switch the detail chart to real terms so historical prices are inflation-adjusted
           (req 3). Two exact edits:
@@ -162,7 +162,7 @@ bin/rubocop && bin/rails test
 
 ## Phase 2 — UI/UX & CSS Optimizations (Seasonality toggle, Prices pills)
 
-- [ ] T2.1 (hard, serial) Toggle the seasonality line via CSS class, not a D3 re-render
+- [IN PROGRESS] T2.1 (hard, serial) Toggle the seasonality line via CSS class, not a D3 re-render
       touches: app/javascript/controllers/d3_line_chart_controller.js, app/views/products/_chart.html.erb,
                app/assets/stylesheets/components/chart.css
       do: Today `toggleSeasonal` flips `showSeasonalValue`, and `showSeasonalValueChanged()` calls `this.draw()` —
