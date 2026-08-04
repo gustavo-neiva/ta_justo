@@ -60,6 +60,17 @@ class ChecksController < ApplicationController
     begin
       verdict_service = FairPriceVerdict.new(variant: @variant, paid_amount: @paid_amount)
       @result = verdict_service.call
+
+      if ENV["POSTHOG_PROJECT_TOKEN"].present? && ENV["POSTHOG_HOST"].present?
+        PostHog.capture(
+          event: "price_check_completed",
+          properties: {
+            product_slug: @product.slug,
+            pricing_mode: @variant.pricing_mode,
+            verdict: @result.verdict.to_s
+          }
+        )
+      end
     rescue => e
       @error = e.message
     end

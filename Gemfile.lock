@@ -103,6 +103,9 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     dotenv (3.2.0)
+    dotenv-rails (3.2.0)
+      dotenv (= 3.2.0)
+      railties (>= 6.1)
     drb (2.2.3)
     ed25519 (1.4.0)
     erb (6.0.4)
@@ -204,6 +207,11 @@ GEM
     parser (3.3.11.1)
       ast (~> 2.4.1)
       racc
+    posthog-rails (3.17.1)
+      posthog-ruby (= 3.18.0)
+      railties (>= 5.2.0)
+    posthog-ruby (3.18.0)
+      concurrent-ruby (~> 1)
     pp (0.6.3)
       prettyprint
     prettyprint (0.2.0)
@@ -380,11 +388,14 @@ DEPENDENCIES
   bundler-audit
   csv (~> 3.3)
   debug
+  dotenv-rails
   holidays
   importmap-rails
   kamal
   kaminari (~> 1.2)
   nokogiri
+  posthog-rails
+  posthog-ruby (~> 3.0)
   propshaft
   puma (>= 5.0)
   rails (~> 8.1.2)

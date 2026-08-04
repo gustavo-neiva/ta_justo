@@ -38,6 +38,11 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"  # not needed for v1
 
+# PostHog analytics and Rails instrumentation
+gem "dotenv-rails"
+gem "posthog-ruby", "~> 3.0"
+gem "posthog-rails"
+
 # Additional gems for Tá Justo
 gem "nokogiri"              # crawler HTML parsing
 gem "csv", "~> 3.3"

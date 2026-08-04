@@ -98,6 +98,18 @@ class ProductsController < ApplicationController
 
     @check_price = paid
     @verdict = FairPriceVerdict.new(variant: @variant, paid_amount: paid).call
+
+    if ENV["POSTHOG_PROJECT_TOKEN"].present? && ENV["POSTHOG_HOST"].present?
+      PostHog.capture(
+        event: "product_price_check_completed",
+        properties: {
+          product_slug: @product.slug,
+          pricing_mode: @variant.pricing_mode,
+          selected_period: @period,
+          verdict: @verdict.verdict.to_s
+        }
+      )
+    end
   rescue => e
     @verdict_error = e.message
   end
