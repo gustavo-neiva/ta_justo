@@ -280,7 +280,7 @@ bin/rubocop && bin/rails test
       constraints: pure rename — every `checker-container`/`checker-form` occurrence in the four files flips in the
           same turn. No visual change. Do not touch `checks_controller.rb`/`routes.rb` (done in T3.1).
 
-- [IN PROGRESS] T3.3 (normal) Add author attribution (name + site) to the footer and About page
+- [x] T3.3 (normal) Add author attribution (name + site) to the footer and About page
       touches: app/views/shared/_footer.html.erb, app/views/pages/sobre.html.erb
       do: Add the author's name and website (req 2). Two exact edits:
 
@@ -318,7 +318,7 @@ bin/rubocop && bin/rails test
       constraints: external link must carry rel="noopener noreferrer"; no layout redesign. Add branding_test asserting
           both the footer partial and /sobre contain the name + href.
 
-- [ ] T3.4 (normal) Add the cornucopia console-log easter egg
+- [IN PROGRESS] T3.4 (normal) Add the cornucopia console-log easter egg
       touches: app/javascript/application.js
       do: Append a console banner easter egg (req 6). `app/javascript/application.js` currently reads EXACTLY these
           four lines (plus trailing newline):
