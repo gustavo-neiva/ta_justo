@@ -47,7 +47,10 @@
   <% end %>
 
   <% if @result %>
-    <div class="verdict-result <%= @result.verdict %>">
+    <div class="verdict-result <%= @result.verdict %>"
+         data-controller="posthog-event"
+         data-posthog-event-name-value="price check completed"
+         data-posthog-event-properties-value="<%= { product_slug: @product.slug, pricing_mode: @variant.pricing_mode, verdict: @result.verdict.to_s }.to_json %>">
       <div class="verdict-badge <%= @result.verdict %>">
         <% case @result.verdict %>
         <% when :barato %>
