@@ -69,6 +69,10 @@ env:
     # Log everything from Rails
     # RAILS_LOG_LEVEL: debug
 
+    # PostHog analytics (config/initializers/posthog.rb)
+    POSTHOG_PROJECT_TOKEN: phc_w6bs8wB2bV7nLqcnM5iRsc5ixgwqVueTtDBgxnWPA6bw
+    POSTHOG_HOST: https://us.i.posthog.com
+
 # Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
 # "bin/kamal logs -r job" will tail logs from the first server in the job section.
 aliases:
