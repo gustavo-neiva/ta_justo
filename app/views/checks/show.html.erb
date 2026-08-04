@@ -1,13 +1,13 @@
 <% content_for :page_class, "landing-page" %>
 <% content_for :title, "Tá Justo? — O índice de preços da CEASA-RJ" %>
 
-<div class="checker-container">
+<div class="verificador-container">
   <div class="page-header">
     <h1>Tá Justo?</h1>
     <p class="subtitle">O primeiro índice de preços para o consumidor carioca</p>
   </div>
 
-  <%= form_with url: root_path, method: :get, class: "checker-form", data: { turbo_frame: "_top" } do |f| %>
+  <%= form_with url: root_path, method: :get, class: "verificador-form", data: { turbo_frame: "_top" } do |f| %>
     <div class="form-group">
       <label for="product">Escolha o produto</label>
       <select name="product" id="product" class="form-control" required>

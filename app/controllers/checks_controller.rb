@@ -1,4 +1,4 @@
-# ChecksController — The hero checker page
+# ChecksController — Página principal do verificador
 # GET / (root)
 # GET /?product=tomate&price=18.50
 class ChecksController < ApplicationController

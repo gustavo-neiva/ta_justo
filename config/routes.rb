@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Main pages
-  root "checks#show"                                # The hero checker
+  root "checks#show"                                # Verificador principal
   get "/precos", to: "precos#index"               # Today's CEASA index
   get "/produtos/:id", to: "products#show", as: :product  # Product detail
   get "/sobre", to: "pages#sobre"                 # About page

@@ -225,7 +225,7 @@ bin/rubocop && bin/rails test
 
 ## Phase 3 — Localization & Branding (pt-BR pass, Footer/About, Console Easter Egg)
 
-- [IN PROGRESS] T3.1 (normal, serial) Remove the "checker" anglicism from all user-facing copy (pt-BR pass)
+- [x] T3.1 (normal, serial) Remove the "checker" anglicism from all user-facing copy (pt-BR pass)
       touches: app/views/products/show.html.erb, app/views/checks/show.html.erb,
                app/views/precos/index.html.erb, app/views/pages/sobre.html.erb,
                app/controllers/checks_controller.rb, config/routes.rb
@@ -262,7 +262,7 @@ bin/rubocop && bin/rails test
       constraints: text/comment only; leave the `checker-container`/`checker-form` CSS class names for T3.2 so this
           turn stays green.
 
-- [ ] T3.2 (normal, serial) Rename checker-* CSS classes to verificador-* across HTML + CSS together
+- [x] T3.2 (normal, serial) Rename checker-* CSS classes to verificador-* across HTML + CSS together
       touches: app/views/products/show.html.erb, app/views/checks/show.html.erb,
                app/assets/stylesheets/domain/ta_justo.css, app/assets/stylesheets/layouts/landing_page.css
       do: Finish the anglicism removal by renaming the CSS classes `checker-container` → `verificador-container`
@@ -280,7 +280,7 @@ bin/rubocop && bin/rails test
       constraints: pure rename — every `checker-container`/`checker-form` occurrence in the four files flips in the
           same turn. No visual change. Do not touch `checks_controller.rb`/`routes.rb` (done in T3.1).
 
-- [ ] T3.3 (normal) Add author attribution (name + site) to the footer and About page
+- [IN PROGRESS] T3.3 (normal) Add author attribution (name + site) to the footer and About page
       touches: app/views/shared/_footer.html.erb, app/views/pages/sobre.html.erb
       do: Add the author's name and website (req 2). Two exact edits:
 

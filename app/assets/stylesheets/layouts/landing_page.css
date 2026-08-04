@@ -10,20 +10,20 @@
   background: var(--color-bg);
 }
 
-/* Checker form card — scoped to landing page */
-.landing-page .checker-container {
+/* Cartão do verificador — scoped to landing page */
+.landing-page .verificador-container {
   width: 100%;
   max-width: 480px;
   margin: 0;
   padding: 0;
 }
 
-.landing-page .checker-container .page-header {
+.landing-page .verificador-container .page-header {
   text-align: center;
   margin-bottom: var(--space-xl);
 }
 
-.landing-page .checker-container .page-header h1 {
+.landing-page .verificador-container .page-header h1 {
   font-size: 2.5rem;
   font-weight: 800;
   color: var(--color-primary);
@@ -31,13 +31,13 @@
   margin-bottom: var(--space-xs);
 }
 
-.landing-page .checker-container .page-header .subtitle {
+.landing-page .verificador-container .page-header .subtitle {
   font-size: 1rem;
   color: var(--color-text-secondary);
   line-height: 1.5;
 }
 
-.landing-page .checker-form .button {
+.landing-page .verificador-form .button {
   margin-top: var(--space-xs);
 }
 

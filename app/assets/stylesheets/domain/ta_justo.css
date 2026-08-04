@@ -1,7 +1,7 @@
 /* Tá Justo? domain-specific styles */
 
-/* Checker page */
-.checker-container {
+/* Verificador */
+.verificador-container {
   max-width: 600px;
   margin: 0 auto;
   padding: var(--space-lg);

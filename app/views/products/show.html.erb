@@ -99,13 +99,13 @@
     <% end %>
 
     <!-- Inline Verdict Calculator -->
-    <div class="checker-container" style="max-width: 100%; margin-top: var(--space-xl); background: var(--color-background-secondary); padding: var(--space-lg); border-radius: var(--radius-lg);">
+    <div class="verificador-container" style="max-width: 100%; margin-top: var(--space-xl); background: var(--color-background-secondary); padding: var(--space-lg); border-radius: var(--radius-lg);">
       <h3>Tá justo?</h3>
       <p style="color: var(--color-text-secondary); margin-bottom: var(--space-md);">
         Digite o preço que você está pagando para comparar:
       </p>
 
-      <%= form_with url: product_path(@product.slug), method: :get, class: "checker-form" do |f| %>
+      <%= form_with url: product_path(@product.slug), method: :get, class: "verificador-form" do |f| %>
         <%= hidden_field_tag :variant, @variant.id %>
         <div class="form-group">
           <label for="check_price">Preço por <%= @unit_label %> (R$)</label>
@@ -224,7 +224,7 @@
     <!-- Navigation -->
     <div style="margin-top: var(--space-xl); display: flex; justify-content: center; gap: var(--space-md); flex-wrap: wrap;">
       <%= link_to "← Todos os preços", precos_path, class: "button secondary" %>
-      <%= link_to "Novo checker", root_path, class: "button primary" %>
+      <%= link_to "Nova consulta", root_path, class: "button primary" %>
     </div>
   <% end %>
 </div>
