@@ -24,6 +24,34 @@ structs) → `VariantMatcher` (ProductMap lookup) → `Loader` (idempotent inser
 `pending_matches`). Jobs: `FetchCeasaRioJob` (daily forward), `BackfillCeasaRioJob`
 (historical crawl).
 
+## The Hetzner server is GEO-BLOCKED from CEASA — fetch runs locally
+
+**PRODERJ (the RJ-state datacenter hosting `www.rj.gov.br`, single A record
+`187.62.128.44`) blocks non-Brazilian source IPs at its WAAP.** The Hetzner box
+(Nürnberg) writes its TLS ClientHello and reads **0 bytes back** — the connection
+is killed mid-handshake (`unexpected eof while reading`). Confirmed identical across
+`curl`/`openssl`/TLS1.2/TLS1.3/browser-UA, so it is **geo/IP-based, not TLS
+fingerprinting** — a server-side `curl-impersonate` fix will NOT help. Federal
+`gov.br` / `serpro.gov.br` work from the server; only RJ-state infra blocks.
+CONAB PROHORT (`pentahoportaldeinformacoes.conab.gov.br`) is reachable from the
+server but its prices do NOT match the PDF bulletins — not a usable source.
+
+**The fix: run the real jobs on a machine with a Brazilian IP (the dev Mac), then
+ship PDFs to the server for disk-only ingest.** The Mac has the three things the
+server lacks: BR egress, poppler, and the full app.
+- `bin/ceasa_local_fetch.sh [daily|backfill]` — runs `FetchCeasaRioJob` /
+  `BackfillCeasaRioJob` locally (uses asdf ruby; the `/opt/homebrew` ruby shim is
+  broken on this machine).
+- `bin/ceasa_sync_hetzner.sh` — `rsync` `storage/ceasa/raw/` → server Docker volume
+  `ta_justo_storage` at `/rails/storage/ceasa/raw`, then `docker exec … bin/rails
+  ceasa:ingest_archive` (disk-only, idempotent — archive-first invariant preserved).
+- **Deploy dependency:** the parser shells out to `pdftotext`, so the image MUST
+  install `poppler-utils` (Dockerfile base packages). Without it the server can
+  fetch/archive but never parse. Redeploy also picks up the `ceasa:ingest_archive`
+  rake task.
+- Daily runs only when the Mac is on; the weekly incremental backfill self-heals
+  gaps (history is secondary — see v1 principle).
+
 ---
 
 ## CEASA data — facts you must respect
@@ -96,6 +124,10 @@ structs) → `VariantMatcher` (ProductMap lookup) → `Loader` (idempotent inser
   validates all 5 fixture PDFs. Core basket is 100% mapped across all fixtures.
 - Don't shell out to `cat`/`grep`/`find`; use the dedicated tools. Parser's `pdftotext`
   shell-out is the one sanctioned exception (it's the actual data source).
+
+## Testing note
+The suite is **Minitest** (`bin/rails test`), NOT rspec — ignore the ratchet
+protocol's `bundle exec rspec` verify command below; it isn't in the bundle.
 
 ## Status docs
 `STATUS.md`, `PROGRESS.md`, `CONTEXT.md` (glossary), `specs/PLAN_MIGRATION_TACARO_…`

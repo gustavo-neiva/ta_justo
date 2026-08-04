@@ -7,6 +7,19 @@ namespace :ceasa do
     CeasaArchiveBackfillJob.perform_now
   end
 
+  desc "Ingest archived PDFs missing from the DB (disk-only, no network — for geo-blocked servers)"
+  task ingest_archive: :environment do
+    ingested = 0
+    Dir.glob(CeasaRio::Archiver.raw_dir.join("*.pdf")).sort.each do |path|
+      date = Date.parse(File.basename(path, ".pdf"))
+      next if Bulletin.exists?(price_date: date, market: "ceasa-rj")
+
+      CeasaRio::Loader.new.ingest_path(path, source_url: "local-archive", market: "ceasa-rj")
+      ingested += 1
+    end
+    puts "Ingested #{ingested} bulletin(s) from archive"
+  end
+
   desc "Show archive coverage: bulletins in DB vs PDFs on disk"
   task archive_status: :environment do
     total = Bulletin.where(market: "ceasa-rj").count
