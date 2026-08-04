@@ -4,9 +4,10 @@ class ChartSeries
   PERIOD_DAYS = { "90" => 90, "365" => 365 }.freeze
   DOZENS_PER_BOX = 30
 
-  def initialize(variant, period: "365")
-    @variant = variant
-    @period  = period
+  def initialize(variant, period: "365", deflated: false)
+    @variant  = variant
+    @period   = period
+    @deflated = deflated
   end
 
   def points
@@ -41,6 +42,39 @@ class ChartSeries
       end
     return nil unless value.positive?
 
+    value *= deflation_factor(price.bulletin.price_date) if @deflated
+
     { date: price.bulletin.price_date.iso8601, price: value.round(2) }
+  end
+
+  def deflation_factor(date)
+    load_index
+    return 1.0 unless @index_fresh
+
+    level = level_for(date)
+    return 1.0 if level.nil? || level.zero?
+
+    @base_level / level
+  end
+
+  def load_index
+    return if @index_loaded
+
+    latest = PriceIndex.where(index_name: "ipca").order(reference_month: :desc).first
+    if latest
+      @base_level = latest.index_level
+      @base_month = latest.reference_month
+      @index_levels = PriceIndex.where(index_name: "ipca")
+                                .order(:reference_month)
+                                .pluck(:reference_month, :index_level)
+                                .to_h
+      @index_fresh = (Date.current - @base_month).to_i <= PriceHistory::STALE_THRESHOLD_DAYS
+    end
+    @index_loaded = true
+  end
+
+  def level_for(date)
+    month = date.beginning_of_month
+    @index_levels.select { |m, _| m <= month }.values.last
   end
 end

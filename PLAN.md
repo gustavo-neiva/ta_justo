@@ -106,7 +106,7 @@ bin/rubocop && bin/rails test
       constraints: additive to the views only; do not change ProductsController param parsing; the "active" state
           logic stays as-is. Add the new integration test asserting hrefs contain all three params.
 
-- [IN PROGRESS] T1.2 (hard, serial) Add a real-terms (deflated) option to ChartSeries, reusing existing IPCA math
+- [x] T1.2 (hard, serial) Add a real-terms (deflated) option to ChartSeries, reusing existing IPCA math
       touches: app/services/chart_series.rb
       do: `ChartSeries#points` returns nominal prices. Add deflation so the chart can show real terms, reusing the
           exact IBGE formula the verdict path already uses (`real = nominal × (index_base / index_data)`), base =
@@ -135,7 +135,7 @@ bin/rubocop && bin/rails test
       constraints: reuse the 90-day stale rule from PriceHistory; no new gem; default deflated:false unchanged.
           Add chart_series_test cases: (a) deflated scales past prices up, (b) no-index → nominal, (c) stale → nominal.
 
-- [ ] T1.3 (normal, serial) Render the chart in real terms and label it as such
+- [IN PROGRESS] T1.3 (normal, serial) Render the chart in real terms and label it as such
       touches: app/controllers/products_controller.rb, app/views/products/_chart.html.erb
       do: With T1.2 shipped, switch the detail chart to real terms so historical prices are inflation-adjusted
           (req 3). Two exact edits:
