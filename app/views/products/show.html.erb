@@ -121,7 +121,7 @@
       <% elsif @verdict %>
         <div class="verdict-result <%= @verdict.verdict %>" style="margin-top: var(--space-md);"
              data-controller="posthog-event"
-             data-posthog-event-name-value="price check completed"
+             data-posthog-event-name-value="price_check_completed"
              data-posthog-event-properties-value="<%= { product_slug: @product.slug, pricing_mode: @variant.pricing_mode, selected_period: @period, verdict: @verdict.verdict.to_s }.to_json %>">
 
           <!-- Axis 1: Markup (loud, colored spine) -->
