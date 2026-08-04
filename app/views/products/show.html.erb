@@ -91,7 +91,7 @@
         <div class="variant-links">
           <% @variants.each do |v| %>
             <%= link_to v.name,
-                product_path(@product.slug, variant: v.id, period: @period),
+                product_path(@product.slug, request.query_parameters.merge(variant: v.id)),
                 class: "variant-link #{'active' if v.id == @variant.id}" %>
           <% end %>
         </div>

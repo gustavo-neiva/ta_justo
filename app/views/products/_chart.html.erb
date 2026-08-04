@@ -4,7 +4,7 @@
     <div class="pill-selector">
       <% [["90", "90 dias"], ["365", "1 ano"], ["all", "Máx"]].each do |value, label| %>
         <%= link_to label,
-              product_path(@product.slug, variant: @variant.id, period: value),
+              product_path(@product.slug, request.query_parameters.merge(period: value)),
               data: { turbo_frame: "product-chart" },
               class: "pill-option#{' active' if @period == value}" %>
       <% end %>
