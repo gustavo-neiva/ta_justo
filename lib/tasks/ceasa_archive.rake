@@ -14,7 +14,7 @@ namespace :ceasa do
       date = Date.parse(File.basename(path, ".pdf"))
       next if Bulletin.exists?(price_date: date, market: "ceasa-rj")
 
-      CeasaRio::Loader.new.ingest_path(path, source_url: "local-archive", market: "ceasa-rj")
+      CeasaRio::Loader.new.ingest_path(path, source_url: "local-archive:#{date}", market: "ceasa-rj")
       ingested += 1
     end
     puts "Ingested #{ingested} bulletin(s) from archive"

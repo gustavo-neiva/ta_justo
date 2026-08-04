@@ -13,7 +13,7 @@ VOL="/var/lib/docker/volumes/ta_justo_storage/_data/ceasa/raw"
 
 echo "==> rsync $(ls storage/ceasa/raw/ | wc -l | tr -d ' ') local PDFs -> $SERVER"
 # rsync only new/changed; server writes are chowned to the rails uid (1000)
-rsync -az --info=stats1 storage/ceasa/raw/ "$SERVER:$VOL/"
+rsync -az --stats storage/ceasa/raw/ "$SERVER:$VOL/"
 ssh "$SERVER" "chown -R 1000:1000 $VOL"
 
 echo "==> ingest archive on server (disk-only, idempotent)"
