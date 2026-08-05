@@ -9,6 +9,10 @@
 class BuyTiming
   Result = Struct.new(:bucket, :source, :label, keyword_init: true)
 
+  # Bump when Result's shape changes so stale marshaled structs in the
+  # cache can't be reloaded (avoids "struct size differs" TypeError).
+  CACHE_VERSION = 2
+
   LABELS = {
     cheap:     "em época",
     normal:    "preço normal",
@@ -78,6 +82,6 @@ class BuyTiming
                         .order("bulletins.price_date DESC")
                         .limit(1)
                         .pick("bulletins.id")
-    "buy_timing/#{@variant.id}/#{latest_id || 'none'}"
+    "buy_timing/v#{CACHE_VERSION}/#{@variant.id}/#{latest_id || 'none'}"
   end
 end
