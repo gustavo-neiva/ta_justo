@@ -156,7 +156,7 @@ class MarketTimingTest < ActiveSupport::TestCase
 
     refute market_timing.null?
     description = market_timing.description
-    assert_match(/época cara/, description)
+    assert_match(/fora de época/, description)
     assert_match(/90/, description)
     assert_match(/30 amostras/, description)
     assert_match(/IPCA/, description)

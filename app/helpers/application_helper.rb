@@ -29,9 +29,9 @@ module ApplicationHelper
 
   def timing_label(bucket)
     case bucket
-    when :cheap     then "época barata"
+    when :cheap     then "em época"
     when :normal    then "preço normal"
-    when :expensive then "época cara"
+    when :expensive then "fora de época"
     end
   end
 
@@ -47,7 +47,7 @@ module ApplicationHelper
     }[timing.bucket]
 
     emoji = { cheap: "📉", normal: "📊", expensive: "📈" }[timing.bucket]
-    text  = timing.qualifier ? "#{timing.qualifier} #{timing.label}" : timing.label
+    text  = timing.label
 
     content_tag(:span, "#{emoji} #{text}", class: "epoca-pill #{bucket_class}")
   end

@@ -31,6 +31,6 @@ class PrecosPageTest < ActionDispatch::IntegrationTest
 
     pills = css_select(".epoca-pill")
     assert pills.any?, "expected at least one época pill"
-    assert_match(/tipicamente/, pills.first.text)
+    assert_match(/preço normal/, pills.first.text)
   end
 end

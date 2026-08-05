@@ -2,126 +2,50 @@
 
 **The first consumer pricing index for Rio de Janeiro.**
 
-Tá Justo? turns CEASA-RJ's daily wholesale PDF bulletins into a fair-price
-benchmark that any shopper at a feira or market can check in 3 taps.
+Tá Justo? turns CEASA-RJ's daily wholesale price bulletins into a fair-price
+guide that any shopper at a feira or market can check in 3 taps.
 
-> **Agents/contributors:** read [`AGENTS.md`](AGENTS.md) first — it captures the
-> non-obvious facts about the CEASA pipeline (two PDF formats, URL/date traps,
-> idempotency, pricing modes, and known historical bugs).
+One city, one source, one question: *tá justo?*
 
 ---
 
-## 🎯 What It Does
+## What it does
 
 Three surfaces:
-1. **`/` — The Checker** (the hero) — Pick a product → enter the R$/kg you're
-   paying → get a verdict: *Barato / Na média / Caro*, plus a two-axis read:
-   markup vs. wholesale and **when in the year** to buy (seasonality).
-2. **`/precos` — Today's CEASA Index** — Today's atacado prices by section,
-   with 12-month variation.
-3. **`/produtos/:slug` — Product Detail** — Inflation-adjusted (IPCA, R$ de hoje)
-   price-history line chart + seasonality overlay (toggled via CSS, no redraw) +
-   verdict calculator. Chart filters (period / variant) preserve all other selected filters.
 
-**Not a SaaS.** Free, droplet-hosted, portfolio-quality, genuinely useful.
-One city, one source, one question.
+1. **`/` — The Checker** — Pick a product, enter the R$/kg you're paying, and get
+   a verdict: *Barato / Na média / Caro*, plus whether it's a good *época*
+   (season) to buy.
+2. **`/precos` — Today's CEASA Prices** — Today's atacado prices by section.
+3. **`/produtos/:slug` — Product Detail** — Price history (in today's reais) and
+   seasonality, with the verdict calculator inline.
 
----
+Free, ad-free, no data selling. Not a SaaS — a portfolio project that's
+genuinely useful.
 
-## 📊 Data (live)
+## The data
 
-- **~1,000+ bulletins** ingested (Jan 2022 → today, modern + legacy formats)
-- **~185k price rows** across **238 variants** / **169 products**
-- **428 product maps** (deterministic CEASA→variant); **280 pending matches**
-  (unmapped long tail — nothing is lost, audited in `pending_matches`)
+All prices come from CEASA-RJ's official daily bulletins (Governo do Estado do
+Rio de Janeiro). Coverage spans **2022 → today**: 1,000+ bulletins and 180k+
+price quotes across ~170 products.
 
----
+## How it works
 
-## 📐 Data Model
+Every business day we fetch the latest CEASA-RJ bulletin and normalize every
+price to **R$/kg** — the unit you compare at the feira. (Eggs become per-dozen;
+unit-sold fruits like pineapple use an average piece weight.) When you enter a
+price, we compare it to wholesale, apply a typical feira markup (1.7–2.5×), and
+tell you two things: whether the seller's margin is fair, and whether this is a
+cheap or expensive *época* for that product.
 
-- **Bulletins** — CEASA-RJ PDF bulletins (`market` is a string seam for future CEASAs)
-- **Products** — canonical products (market-agnostic)
-- **Variants** — grades / origins / species
-- **ProductMaps** — explicit market→variant mapping (100% deterministic)
-- **ProductAliases** — flexible naming for search (normalized lookups)
-- **Prices** — time-series with unit normalization (`per_kg` / `per_dozen` / `per_unit`)
-- **PriceIndex** — derived index view
-- **PendingMatches** — safety net for unmapped products
-
----
-
-## 🔧 Tech Stack
-
-- **Ruby 3.4.2 · Rails 8.1** + SQLite3
-- **Hotwire** (Turbo + Stimulus) + **importmap**
-- **D3.js** (vendored) — history line chart + seasonality, via a Stimulus controller
-- **Solid Queue** for background jobs
-- **Kamal** for deployment
-
----
-
-## 🧠 Verdict Engine
-
-A fair-price verdict is decomposed into composable value objects, each tested:
-- **`FairPriceVerdict`** — orchestrator
-- **`Markup`** — shopper price vs. wholesale band
-- **`MarketTiming`** + **`BuyTiming`** — is now a good moment in the season?
-- **`PriceHistory`** + **`SeasonalityCalculator`** — percentile bands & trends
-- **`ChartSeries`** — detail-chart series; deflates to real terms (IPCA série 1737, base = latest
-  published month, forward-filled) with graceful nominal fallback when the index is missing/stale
-- **`PackSize`** / **`UnitNormalizer`** — multi-packaging & unit edge cases
-
----
-
-## 🏗️ Project Structure
-
-```
-app/
-├── controllers/   checks, precos, products, pages
-├── models/        Bulletin, Product, Variant, Price, PriceIndex,
-│                  ProductMap, ProductAlias, PendingMatch
-├── services/
-│   ├── ceasa_rio/ Parser (modern + legacy), Fetcher, Crawler,
-│   │              Loader, VariantMatcher, UnitNormalizer, Archiver
-│   └── ...        FairPriceVerdict, Markup, MarketTiming, BuyTiming,
-│                  PriceHistory, SeasonalityCalculator, ChartSeries
-├── jobs/          FetchCeasaRioJob (daily), BackfillCeasaRioJob (historical)
-└── javascript/    d3_line_chart_controller (Stimulus)
-```
-
----
-
-## 📖 Documentation
-
-- [`AGENTS.md`](AGENTS.md) — working notes & CEASA data caveats (read first)
-- [`CONTEXT.md`](CONTEXT.md) — ubiquitous-language glossary
-- [`STATUS.md`](STATUS.md) / [`PROGRESS.md`](PROGRESS.md) — execution status
-- [`specs/PLAN_LEGACY_BACKFILL.md`](specs/PLAN_LEGACY_BACKFILL.md) — pre-2023
-  historical import (the legacy PDF format cutover is exactly 2023-03-01)
-
----
-
-## 🧪 Development
-
-```bash
-bundle install
-bin/rails db:create db:migrate
-bin/dev                # web + Solid Queue (Procfile.dev)
-
-# fetch today's CEASA bulletin
-bin/rails runner "FetchCeasaRioJob.perform_now"
-```
-
-PDF parsing shells out to `pdftotext -layout` (poppler) — a hard dependency.
-
----
-
-## 📝 License
+## License
 
 Portfolio project. Not for commercial use.
 
 ---
 
-Feito por [Luiz Gustavo Zincone Neiva](https://gustavoneiva.dev).
+Desenvolvido por [Gustavo Neiva](https://gustavoneiva.dev).
 
 **Built with care in Rio de Janeiro 🇧🇷**
+
+> Contributors & agents: working notes and data caveats live in [`AGENTS.md`](AGENTS.md).

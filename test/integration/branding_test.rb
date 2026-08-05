@@ -7,7 +7,7 @@ class BrandingTest < ActionDispatch::IntegrationTest
 
     link = css_select("footer a[href='https://gustavoneiva.dev']").first
     assert link, "expected footer link to gustavoneiva.dev"
-    assert_includes link.text, "Luiz Gustavo Zincone Neiva"
+    assert_includes link.text, "Gustavo Neiva"
     assert_equal "_blank", link["target"]
     assert_includes link["rel"], "noopener"
     assert_includes link["rel"], "noreferrer"
@@ -19,7 +19,7 @@ class BrandingTest < ActionDispatch::IntegrationTest
 
     link = css_select("a[href='https://gustavoneiva.dev']").first
     assert link, "expected about page link to gustavoneiva.dev"
-    assert_includes link.text, "Luiz Gustavo Zincone Neiva"
+    assert_includes link.text, "Gustavo Neiva"
     assert_equal "_blank", link["target"]
     assert_includes link["rel"], "noopener"
     assert_includes link["rel"], "noreferrer"

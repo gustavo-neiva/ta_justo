@@ -2,17 +2,17 @@
 #
 # Tiering ladder (best signal first):
 #   1. MarketTiming (≥30 deflated samples) → truest signal, exact percentile
-#   2. SeasonalityCalculator (≥6 months)   → typical pattern, "tipicamente" qualifier
+#   2. SeasonalityCalculator (≥6 months)   → historical pattern (seasonal, nominal)
 #   3. nil                                  → no tag shown
 #
 # Results are cached 24 h keyed on variant + latest bulletin.
 class BuyTiming
-  Result = Struct.new(:bucket, :source, :label, :qualifier, keyword_init: true)
+  Result = Struct.new(:bucket, :source, :label, keyword_init: true)
 
   LABELS = {
-    cheap:     "época barata",
+    cheap:     "em época",
     normal:    "preço normal",
-    expensive: "época cara"
+    expensive: "fora de época"
   }.freeze
 
   def self.resolve(variant)
@@ -35,8 +35,7 @@ class BuyTiming
       return Result.new(
         bucket:    timing.bucket,
         source:    :timing,
-        label:     LABELS[timing.bucket],
-        qualifier: nil
+        label:     LABELS[timing.bucket]
       )
     end
 
@@ -46,8 +45,7 @@ class BuyTiming
     Result.new(
       bucket:    bucket,
       source:    :seasonality,
-      label:     LABELS[bucket],
-      qualifier: "tipicamente"
+      label:     LABELS[bucket]
     )
   end
 
