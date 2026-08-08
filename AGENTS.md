@@ -16,19 +16,19 @@ Tests are **Minitest** (`bin/rails test`), NOT rspec — ignore the ratchet bloc
 `VariantMatcher` (ProductMap) → `Loader` (idempotent; misses → `pending_matches`).
 Jobs: `FetchCeasaRioJob` (daily), `BackfillCeasaRioJob` (historical crawl).
 
-## Server is GEO-BLOCKED — fetch runs locally
-PRODERJ (`www.rj.gov.br`, A record `187.62.128.44`) blocks non-BR IPs at its WAAP:
-the Hetzner box's TLS handshake is killed (reads 0 bytes; `unexpected eof`).
-Geo/IP-based, not fingerprinting (identical across curl/openssl/TLS1.2/1.3/browser-UA)
-— a server-side curl-impersonate fix won't help. CONAB PROHORT is reachable but its
-prices don't match the PDFs. **Fix: run the real jobs on a BR IP (dev Mac: has BR
-egress + poppler + the app), ship PDFs to the server for disk-only ingest.**
+## CEASA source is GEO-BLOCKED — fetch runs locally on a BR IP
+PRODERJ (the CEASA source host) blocks non-Brazil IPs at its WAAP: from a non-BR IP
+the TLS handshake dies (0 bytes, `unexpected eof`). Geo/IP-based, not fingerprinting
+(identical across curl/openssl/TLS1.2/1.3/browser UA), so a curl-impersonate fix
+won't help. CONAB PROHORT is reachable but its prices don't match the PDFs.
+**Implication: the real fetch jobs run on a BR IP (local dev machine), never on the
+app host. The host only ingests from already-fetched PDFs (disk-only, idempotent).**
 - `bin/ceasa_local_fetch.sh [daily|backfill]` — runs the jobs locally (asdf ruby; the
   `/opt/homebrew` ruby shim is broken here).
-- `bin/ceasa_sync_hetzner.sh` — rsync `storage/ceasa/raw/` → volume `ta_justo_storage`
-  (`/rails/storage/ceasa/raw`), then `ceasa:ingest_archive` (disk-only, idempotent).
-- Image MUST install `poppler-utils` (Dockerfile) or the server can't parse. Daily runs
-  only when the Mac is on; weekly backfill self-heals gaps.
+- Fetched PDFs under `storage/ceasa/raw/` then ship to the host for disk-only
+  `ceasa:ingest_archive`; daily runs only when the local machine is on, weekly
+  backfill self-heals gaps.
+- Any host image MUST install `poppler-utils` (Dockerfile) or it can't parse.
 
 ## CEASA data facts
 1. **NEVER construct PDF URLs — crawl real hrefs.** Filenames vary by Unicode norm (NFD

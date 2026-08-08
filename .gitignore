@@ -42,3 +42,8 @@
 # Local agent/tool dirs — config lives in AGENTS.md, not in the tree
 /.claude/
 /.gitnexus/
+
+# Local-only CEASA ops scripts — machine-specific (BR egress + server creds);
+# kept out of the public repo. Fetch runs locally per the geoblock note in AGENTS.md.
+/bin/ceasa_local_fetch.sh
+/bin/ceasa_sync_hetzner.sh
