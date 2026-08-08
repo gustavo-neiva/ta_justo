@@ -2,9 +2,10 @@ class BackfillCeasaRioJob < ApplicationJob
   queue_as :default
   LEGACY_MIN = Date.new(2022, 1, 1)  # 2022-01 is the hard floor (pre-2022 not published)
 
-  def perform
+  def perform(since: nil)
+    # since: nil → crawler defaults to (latest archived PDF − 7 days); an explicit Date pins the window.
     puts "Starting crawler..."
-    urls = CeasaRio::Crawler.new.discover_urls
+    urls = CeasaRio::Crawler.new.discover_urls(since: since)
     puts "Discovered #{urls.size} URLs"
     Rails.logger.info("Discovered #{urls.size} URLs")
 
