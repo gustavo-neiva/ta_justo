@@ -26,9 +26,10 @@ module CeasaRio
     end
 
     def fetch_and_validate(url)
-      # URL has spaces + accented chars (diário/preços); Net::HTTP/URI need it
-      # ASCII-encoded or URI() raises InvalidURIError (silently swallowed below).
-      uri = URI(URI::DEFAULT_PARSER.escape(url))
+      # Idempotent escape: unescape first so already-encoded crawler hrefs
+      # (%20/%C3%A1) aren't double-encoded to %2520 (→ 404), while raw url_for
+      # output (literal spaces/accents) still gets escaped once.
+      uri = URI(URI::DEFAULT_PARSER.escape(URI::DEFAULT_PARSER.unescape(url)))
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         resp = http.get(uri.request_uri)
         return nil unless resp.code == "200"
