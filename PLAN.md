@@ -224,7 +224,7 @@ bin/rubocop && bin/rails test
       constraints: dedupe by variant only within a section's loaded rows; do not change section grouping, timing,
           or the fair_relevant filter. Add a test asserting one Tommy Atkins row on /precos.
 
-- [IN PROGRESS] T2.2 (trivial, serial) Link each /precos variety row to that exact variant (?variant=ID)
+- [x] T2.2 (trivial, serial) Link each /precos variety row to that exact variant (?variant=ID)
       touches: app/views/precos/index.html.erb
       do: In the multi-type branch, the per-variant `link_to product_path(product.slug)` carries no variant, so
           clicking any variety opens the default (Palmer for Manga). Pass the variant id:
@@ -244,7 +244,7 @@ bin/rubocop && bin/rails test
 
 ## Phase 3 — Surface the CEASA PDF link per price day
 
-- [ ] T3.1 (trivial) Show the source PDF link on /precos and the detail raw-data section
+- [IN PROGRESS] T3.1 (trivial) Show the source PDF link on /precos and the detail raw-data section
       touches: app/views/precos/index.html.erb, app/views/products/show.html.erb
       do: `bulletins.source_url` holds the exact PDF. Surface it read-only.
           (A) `/precos` header: below the "Atualizado…" subtitle add
