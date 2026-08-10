@@ -107,6 +107,17 @@ module CoreBasket
       }
     end
   end
+
+  def self.search_index
+    # JSON-encodable index for the live product search (product + variant names)
+    all_products.includes(:variants).order(:name).map do |product|
+      {
+        slug: product.slug,
+        name: product.name,
+        variants: product.variants.order(:name).map { |variant| { id: variant.id, name: variant.name } }
+      }
+    end
+  end
 end
 
 puts "✅ Core basket defined: #{CoreBasket::SLUGS.count} products"

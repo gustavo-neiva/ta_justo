@@ -4,6 +4,7 @@
 class ChecksController < ApplicationController
   def show
     load_core_basket_products
+    load_search_index
     load_unit_label_for_selected_product
 
     if params[:product].present? && params[:price].present?
@@ -32,6 +33,11 @@ class ChecksController < ApplicationController
     # Load the checkable products for the dropdown
     require Rails.root.join("db/seeds/core_basket.rb")
     @core_products = CoreBasket.checkable_list
+  end
+
+  def load_search_index
+    require Rails.root.join("db/seeds/core_basket.rb")
+    @search_index = CoreBasket.search_index
   end
 
   def run_verdict
