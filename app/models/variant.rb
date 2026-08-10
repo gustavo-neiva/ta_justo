@@ -26,6 +26,15 @@ class Variant < ApplicationRecord
     rows = prices.where(bulletin: bulletin)
     return representative_dozen_row(rows) if pricing_mode == "per_dozen"
 
+    if pricing_mode == "per_unit"
+      rows = rows.to_a
+      direct = rows.select { |p| p.original_unit == "unit" }
+      return direct.min_by(&:id) if direct.any?
+
+      usable = rows.select { |p| p.price_per_kg }
+      return usable.min_by { |p| [ PackSize.kg(p.raw_unit) || Float::INFINITY, p.id ] }
+    end
+
     usable = rows.where.not(price_per_kg: nil).to_a
     usable.min_by { |p| [ PackSize.kg(p.raw_unit) || Float::INFINITY, p.id ] }
   end
@@ -41,6 +50,8 @@ class Variant < ApplicationRecord
       scope = scope.where("bulletins.price_date >= ?", months.months.ago) if months
       if pricing_mode == "per_dozen"
         scope = scope.where(original_unit: "dozen")
+      elsif pricing_mode == "per_unit"
+        scope = scope.where(original_unit: "unit").or(scope.where.not(price_per_kg: nil))
       else
         scope = scope.where.not(price_per_kg: nil)
       end
@@ -59,6 +70,8 @@ class Variant < ApplicationRecord
     scope = prices.joins(:bulletin)
     if pricing_mode == "per_dozen"
       scope = scope.where(original_unit: "dozen")
+    elsif pricing_mode == "per_unit"
+      scope = scope.where(original_unit: "unit").or(scope.where.not(price_per_kg: nil))
     else
       scope = scope.where.not(price_per_kg: nil)
     end
@@ -76,8 +89,15 @@ class Variant < ApplicationRecord
   private
 
   def pick_representative(rows)
-    if pricing_mode == "per_dozen"
+    case pricing_mode
+    when "per_dozen"
       rows.select { |p| p.original_unit == "dozen" }.min_by(&:id)
+    when "per_unit"
+      direct = rows.select { |p| p.original_unit == "unit" }
+      return direct.min_by(&:id) if direct.any?
+
+      rows.select { |p| p.price_per_kg }
+          .min_by { |p| [ PackSize.kg(p.raw_unit) || Float::INFINITY, p.id ] }
     else
       rows.select { |p| p.price_per_kg }
           .min_by { |p| [ PackSize.kg(p.raw_unit) || Float::INFINITY, p.id ] }

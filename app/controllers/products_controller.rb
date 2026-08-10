@@ -85,7 +85,12 @@ class ProductsController < ApplicationController
   def comparable_for(variant, price)
     case variant.pricing_mode
     when "per_dozen" then price.modal.to_f / 30
-    when "per_unit"  then price.price_per_kg.to_f * variant.avg_weight_kg.to_f if variant.avg_weight_kg&.positive?
+    when "per_unit"
+      if price.original_unit == "unit"
+        price.modal.to_f
+      else
+        price.price_per_kg.to_f * variant.avg_weight_kg.to_f if variant.avg_weight_kg&.positive?
+      end
     else                  price.price_per_kg.to_f
     end
   end

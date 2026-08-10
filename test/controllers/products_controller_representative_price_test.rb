@@ -33,4 +33,23 @@ class ProductsControllerRepresentativePriceTest < ActionDispatch::IntegrationTes
     assert_select ".stat-value", text: /13\.00/
     assert_select ".stat-value", text: /6\.11/, count: 0
   end
+
+  test "direct-unit variant shows the modal unit price instead of an error" do
+    product = Product.create!(name: "Coco Detalhe", category: "fruta", section: 1)
+    variant = Variant.create!(
+      product: product, name: "Verde", pricing_mode: "per_unit",
+      default_for_product: true
+    )
+    product.update!(default_variant: variant)
+    Price.create!(
+      bulletin: @bulletin, variant: variant, section: 1,
+      raw_unit: "Unid", original_unit: "unit",
+      modal: 3.30, price_per_kg: nil
+    )
+
+    get product_path(product.slug)
+    assert_response :success
+    assert_select ".alert", text: /Nenhum preço encontrado/, count: 0
+    assert_select ".stat-value", text: /3\.30/
+  end
 end

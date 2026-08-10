@@ -68,6 +68,89 @@ class VariantRepresentativePriceTest < ActiveSupport::TestCase
     assert_nil @variant.representative_price(bulletin: @bulletin)
   end
 
+  # ── per_unit: direct-unit rows (original_unit = 'unit', price_per_kg nil) ───
+  test "per_unit selects direct-unit row when price_per_kg is nil" do
+    coco = Variant.create!(
+      product: Product.create!(name: "Coco", category: "fruta", section: 1),
+      name: "Verde", pricing_mode: "per_unit", avg_weight_kg: 1.2
+    )
+    unit = Price.create!(
+      bulletin: @bulletin, variant: coco, section: 1,
+      raw_unit: "Unid", original_unit: "unit",
+      modal: 3.30, price_per_kg: nil
+    )
+
+    assert_equal unit, coco.representative_price(bulletin: @bulletin)
+  end
+
+  test "per_unit prefers direct-unit row over weight-derived rows" do
+    coco = Variant.create!(
+      product: Product.create!(name: "Coco", category: "fruta", section: 1),
+      name: "Verde", pricing_mode: "per_unit", avg_weight_kg: 1.2
+    )
+    unit = Price.create!(
+      bulletin: @bulletin, variant: coco, section: 1,
+      raw_unit: "Unid", original_unit: "unit",
+      modal: 3.30, price_per_kg: nil
+    )
+    Price.create!(
+      bulletin: @bulletin, variant: coco, section: 1,
+      raw_unit: "Cx 10 kg", original_unit: "kg",
+      modal: 50.0, price_per_kg: 5.0
+    )
+
+    assert_equal unit, coco.representative_price(bulletin: @bulletin)
+  end
+
+  test "per_unit weight-derived rows still use smallest retail pack" do
+    melon = Variant.create!(
+      product: Product.create!(name: "Melancia", category: "fruta", section: 1),
+      name: "Crimson", pricing_mode: "per_unit", avg_weight_kg: 5.0
+    )
+    big   = Price.create!(
+      bulletin: @bulletin, variant: melon, section: 1,
+      raw_unit: "Cx 20 kg", original_unit: "kg",
+      modal: 80.0, price_per_kg: 4.0
+    )
+    small = Price.create!(
+      bulletin: @bulletin, variant: melon, section: 1,
+      raw_unit: "Cx 5 kg", original_unit: "kg",
+      modal: 25.0, price_per_kg: 5.0
+    )
+
+    assert_equal small, melon.representative_price(bulletin: @bulletin)
+  end
+
+  test "latest_price resolves a direct-unit row" do
+    coco = Variant.create!(
+      product: Product.create!(name: "Coco", category: "fruta", section: 1),
+      name: "Verde", pricing_mode: "per_unit", avg_weight_kg: 1.2
+    )
+    unit = Price.create!(
+      bulletin: @bulletin, variant: coco, section: 1,
+      raw_unit: "Unid", original_unit: "unit",
+      modal: 3.30, price_per_kg: nil
+    )
+
+    assert_equal unit, coco.latest_price
+  end
+
+  test "representative_series includes direct-unit rows for per_unit" do
+    coco = Variant.create!(
+      product: Product.create!(name: "Coco", category: "fruta", section: 1),
+      name: "Verde", pricing_mode: "per_unit", avg_weight_kg: 1.2
+    )
+    Price.create!(
+      bulletin: @bulletin, variant: coco, section: 1,
+      raw_unit: "Unid", original_unit: "unit",
+      modal: 3.30, price_per_kg: nil
+    )
+
+    series = coco.representative_series
+    assert_equal 1, series.size
+    assert_equal "unit", series.first.original_unit
+  end
+
   private
 
   def price_row(raw_unit, modal:, min: nil, max: nil, per_kg: nil)

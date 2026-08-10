@@ -85,7 +85,7 @@ bin/rubocop && bin/rails test
 > lives in the ONE place all callers route through (Variant representative-row selection + the per_unit
 > verdict branch), not per-page.
 
-- [IN PROGRESS] T1.1 (hard, serial) Select & price direct-unit rows (original_unit='unit') everywhere representative-row selection runs
+- [x] T1.1 (hard, serial) Select & price direct-unit rows (original_unit='unit') everywhere representative-row selection runs
       touches: app/models/variant.rb, app/services/fair_price_verdict.rb, app/controllers/products_controller.rb
       do: A per_unit variant has two CEASA sub-cases: **direct-unit** (`original_unit="unit"`, price IS `modal`,
           `price_per_kg` nil — Coco Verde, R$3.30/peça) and **weight-derived** (`original_unit="kg"`,
@@ -147,7 +147,7 @@ bin/rubocop && bin/rails test
           (a) Coco Verde `latest_price` returns the unit row; (b) verdict for Verde is per-unidade == modal and
           never raises; (c) a weight-derived per_unit variant still prices `price_per_kg × avg_weight_kg`.
 
-- [ ] T1.2 (normal, serial) State how each price is derived (metrics transparency) on detail + /precos
+- [IN PROGRESS] T1.2 (normal, serial) State how each price is derived (metrics transparency) on detail + /precos
       touches: app/views/products/show.html.erb, app/views/precos/index.html.erb, app/controllers/precos_controller.rb, app/helpers/application_helper.rb
       do: Show each price in the unit CEASA quotes; only explain a conversion when one actually happened
           (odd packaging → /kg). Builds on T1.1's direct-unit branch (annotation 3, principle 6).

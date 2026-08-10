@@ -49,6 +49,46 @@ class FairPriceVerdictPercentileTest < ActiveSupport::TestCase
     end
   end
 
+  test "direct-unit per_unit verdict uses modal and does not require avg_weight_kg" do
+    product = Product.create!(name: "Coco", category: "fruta", section: 1)
+    variant = Variant.create!(
+      product: product, name: "Verde", pricing_mode: "per_unit"
+      # avg_weight_kg intentionally nil
+    )
+    bulletin = Bulletin.create!(
+      market: "ceasa-rj", price_date: 1.day.ago.to_date,
+      source_url: "https://ex.test/coco.pdf"
+    )
+    Price.create!(
+      bulletin: bulletin, variant: variant, section: 1,
+      raw_unit: "Unid", original_unit: "unit",
+      modal: 3.30, price_per_kg: nil
+    )
+
+    res = FairPriceVerdict.new(variant: variant, paid_amount: 4.0).call
+    assert_in_delta 3.30, res.ceasa_comparable, 0.01
+    assert_equal "unidade", res.unit_label
+  end
+
+  test "weight-derived per_unit verdict still prices price_per_kg times avg_weight_kg" do
+    product = Product.create!(name: "Melancia", category: "fruta", section: 1)
+    variant = Variant.create!(
+      product: product, name: "Crimson", pricing_mode: "per_unit", avg_weight_kg: 5.0
+    )
+    bulletin = Bulletin.create!(
+      market: "ceasa-rj", price_date: 1.day.ago.to_date,
+      source_url: "https://ex.test/melon.pdf"
+    )
+    Price.create!(
+      bulletin: bulletin, variant: variant, section: 1,
+      raw_unit: "Cx 5 kg", original_unit: "kg",
+      modal: 25.0, price_per_kg: 5.0
+    )
+
+    res = FairPriceVerdict.new(variant: variant, paid_amount: 30.0).call
+    assert_in_delta 25.0, res.ceasa_comparable, 0.01
+  end
+
   private
 
   def verdict_for(paid:)

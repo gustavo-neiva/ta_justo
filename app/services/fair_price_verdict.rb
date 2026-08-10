@@ -114,12 +114,16 @@ class FairPriceVerdict
   # ── per_unit (abacaxi, melancia, alface, etc.) ────────────────────────────────
 
   def call_per_unit
-    raise "Variante #{@variant.name} sem avg_weight_kg — não pode gerar veredicto" unless @variant.avg_weight_kg&.positive?
-
     latest = representative_latest
-    raise "Sem preço CEASA (por kg) para #{@variant.name}" unless latest
+    raise "Sem preço CEASA para #{@variant.name}" unless latest
 
-    ceasa_per_unit = latest.price_per_kg.to_f * @variant.avg_weight_kg.to_f
+    if latest.original_unit == "unit"
+      ceasa_per_unit = latest.modal.to_f
+    else
+      raise "Variante #{@variant.name} sem avg_weight_kg — não pode gerar veredicto" unless @variant.avg_weight_kg&.positive?
+
+      ceasa_per_unit = latest.price_per_kg.to_f * @variant.avg_weight_kg.to_f
+    end
     ceasa_date     = latest.bulletin.price_date
     stale          = stale?(ceasa_date)
     ratio          = @paid_amount / ceasa_per_unit
@@ -158,7 +162,12 @@ class FairPriceVerdict
       case mode
       when :per_kg    then price.price_per_kg.to_f
       when :per_dozen then price.modal.to_f / DOZENS_PER_BOX
-      when :per_unit  then price.price_per_kg.to_f * @variant.avg_weight_kg.to_f
+      when :per_unit
+        if price.original_unit == "unit"
+          price.modal.to_f
+        else
+          price.price_per_kg.to_f * @variant.avg_weight_kg.to_f
+        end
       end
     end
   end
