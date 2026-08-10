@@ -74,5 +74,9 @@ class PrecosPageTest < ActionDispatch::IntegrationTest
 
     assert_select ".variant-name", text: "Tommy Atkins", count: 1
     assert_select ".variant-name", text: "Palmer", count: 1
+
+    # Variant rows must link to the exact variant (?variant=ID), not the default.
+    variant_rows = css_select(".price-row--variant[href*=variant]")
+    assert_equal 2, variant_rows.size, "variant rows should carry ?variant= in href"
   end
 end

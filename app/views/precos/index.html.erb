@@ -64,7 +64,7 @@
                     </div>
                     <% prices.each do |price| %>
                       <% display_price = price_with_unit(price) %>
-                      <%= link_to product_path(product.slug), class: "price-row price-row--variant" do %>
+                      <%= link_to product_path(product.slug, variant: price.variant.id), class: "price-row price-row--variant" do %>
                         <span class="col-product variant-name"><%= price.variant.name %></span>
                         <span class="col-price price-value"><%= display_price %></span>
                         <span class="col-epoca"><%= epoca_pill(section_data[:timing][price.variant.id]) %></span>
