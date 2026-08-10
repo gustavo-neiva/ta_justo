@@ -279,7 +279,7 @@ bin/rubocop && bin/rails test
       constraints: no new model/table; reuse `CoreBasket.all_products` with `includes(:variants)`. Add a
           controller test asserting `@search_index` includes a product with variants.
 
-- [IN PROGRESS] T4.2 (hard, serial) Client-side live search UI on the checker, accent-insensitive, links to product or variant
+- [x] T4.2 (hard, serial) Client-side live search UI on the checker, accent-insensitive, links to product or variant
       touches: app/views/checks/show.html.erb, app/javascript/controllers/product_search_controller.js, app/javascript/controllers/index.js
       do: Replace the `<select>` with a live search input over `@search_index` (embedded as JSON in a
           `data-` attribute). New Stimulus controller `product_search_controller.js`:

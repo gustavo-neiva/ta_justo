@@ -17,8 +17,9 @@ class ChecksController < ApplicationController
   def load_unit_label_for_selected_product
     return unless params[:product].present?
     product = Product.find_by(slug: params[:product])
-    return unless product&.default_variant
-    @unit_label = unit_label_for(product.default_variant)
+    return unless product
+    variant = resolve_variant(product)
+    @unit_label = unit_label_for(variant) if variant
   end
 
   def unit_label_for(variant)
@@ -48,10 +49,10 @@ class ChecksController < ApplicationController
       return
     end
 
-    @variant = @product.default_variant
+    @variant = resolve_variant(@product)
 
     unless @variant
-      @error = "Produto sem variante padrão configurada"
+      @error = params[:variant].present? ? "Variante não encontrada" : "Produto sem variante padrão configurada"
       return
     end
 
@@ -68,6 +69,14 @@ class ChecksController < ApplicationController
       @result = verdict_service.call
     rescue => e
       @error = e.message
+    end
+  end
+
+  def resolve_variant(product)
+    if params[:variant].present?
+      product.variants.find_by(id: params[:variant])
+    else
+      product.default_variant
     end
   end
 end

@@ -7,17 +7,41 @@
     <p class="subtitle">O primeiro índice de preços para o consumidor carioca</p>
   </div>
 
-  <%= form_with url: root_path, method: :get, class: "verificador-form", data: { turbo_frame: "_top" } do |f| %>
-    <div class="form-group">
-      <label for="product">Escolha o produto</label>
-      <select name="product" id="product" class="form-control" required>
-        <option value="">Selecione...</option>
-        <% @core_products.each do |p| %>
-          <option value="<%= p[:slug] %>" <%= 'selected' if params[:product] == p[:slug] %>>
-            <%= p[:name] %>
-          </option>
-        <% end %>
-      </select>
+  <% selected_label = if params[:product].present?
+       product_entry = @search_index.find { |p| p[:slug] == params[:product] }
+       if product_entry && params[:variant].present?
+         variant_entry = product_entry[:variants].find { |v| v[:id].to_s == params[:variant] }
+         variant_entry ? "#{product_entry[:name]} › #{variant_entry[:name]}" : product_entry[:name]
+       else
+         product_entry&.dig(:name)
+       end
+     end %>
+
+  <%= form_with url: root_path, method: :get, class: "verificador-form", data: { turbo_frame: "_top", controller: "product-search", "product-search-index-value": @search_index.to_json } do |f| %>
+    <div class="form-group product-search">
+      <label for="product-search-input">Escolha o produto</label>
+      <input type="search"
+             id="product-search-input"
+             class="form-control"
+             placeholder="Digite o nome do produto ou variedade (ex: manga espada)"
+             autocomplete="off"
+             value="<%= selected_label %>"
+             data-product-search-target="input"
+             data-action="input->product-search#filter">
+      <input type="hidden" name="product" value="<%= params[:product] %>" data-product-search-target="product">
+      <input type="hidden" name="variant" value="<%= params[:variant] %>" data-product-search-target="variant">
+      <div class="product-search-results" data-product-search-target="results" hidden></div>
+
+      <noscript>
+        <select name="product" id="product" class="form-control" required>
+          <option value="">Selecione...</option>
+          <% @core_products.each do |p| %>
+            <option value="<%= p[:slug] %>" <%= 'selected' if params[:product] == p[:slug] %>>
+              <%= p[:name] %>
+            </option>
+          <% end %>
+        </select>
+      </noscript>
     </div>
 
     <div class="form-group">
