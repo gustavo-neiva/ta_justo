@@ -171,7 +171,7 @@
       <details class="accordion-item raw-data-details" style="margin-top: var(--space-lg);">
         <summary class="accordion-summary">
           <span class="accordion-title">
-            <span class="accordion-title-text">📦 Dados brutos CEASA (<%= I18n.l(@price_date, format: :short) %>)</span>
+            <span class="accordion-title-text">📦 Dados brutos CEASA (<%= link_to I18n.l(@price_date, format: :short), @latest_price.bulletin.source_url, target: "_blank", rel: "noopener" %>)</span>
           </span>
           <span class="accordion-indicator">▾</span>
         </summary>

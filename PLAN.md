@@ -244,7 +244,7 @@ bin/rubocop && bin/rails test
 
 ## Phase 3 — Surface the CEASA PDF link per price day
 
-- [IN PROGRESS] T3.1 (trivial) Show the source PDF link on /precos and the detail raw-data section
+- [x] T3.1 (trivial) Show the source PDF link on /precos and the detail raw-data section
       touches: app/views/precos/index.html.erb, app/views/products/show.html.erb
       do: `bulletins.source_url` holds the exact PDF. Surface it read-only.
           (A) `/precos` header: below the "Atualizado…" subtitle add
@@ -263,7 +263,7 @@ bin/rubocop && bin/rails test
 
 ## Phase 4 — Live product search on the checker (replaces the dropdown)
 
-- [ ] T4.1 (normal, serial) Expose core-basket products + their variant names as a search index for the checker
+- [IN PROGRESS] T4.1 (normal, serial) Expose core-basket products + their variant names as a search index for the checker
       touches: app/controllers/checks_controller.rb, db/seeds/core_basket.rb
       do: The live search must match products AND subcategories (variant/type names like "Espada", "Seco")
           (annotation 1). Build the search data server-side once and hand it to the view.

@@ -13,6 +13,9 @@
           </span>
         <% end %>
       </p>
+      <p class="source-link">
+        <%= link_to "Ver boletim PDF", @latest_bulletin.source_url, target: "_blank", rel: "noopener" %>
+      </p>
     <% end %>
   </div>
 

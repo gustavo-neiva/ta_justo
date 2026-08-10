@@ -25,6 +25,14 @@ class PrecosPageTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "index links the source CEASA PDF" do
+    get precos_path
+    assert_response :success
+
+    latest = Bulletin.where(market: "ceasa-rj").order(price_date: :desc).first
+    assert_select "a[href=?]", latest.source_url, text: /Ver boletim PDF/
+  end
+
   test "index loads and renders full época pills" do
     get precos_path
     assert_response :success
