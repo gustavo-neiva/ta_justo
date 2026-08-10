@@ -86,8 +86,8 @@ class Variant < ApplicationRecord
     latest_price&.price_per_kg
   end
 
-  private
-
+  # Single-row representative selection used by representative_price and by
+  # surfaces that already have the variant's rows loaded (e.g. /precos).
   def pick_representative(rows)
     case pricing_mode
     when "per_dozen"
@@ -103,6 +103,8 @@ class Variant < ApplicationRecord
           .min_by { |p| [ PackSize.kg(p.raw_unit) || Float::INFINITY, p.id ] }
     end
   end
+
+  private
 
   # per_dozen rows are all the same box ("Cx 30 dz"); pack-size selection
   # does not apply, so we just take a stable single row.

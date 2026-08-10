@@ -41,4 +41,38 @@ class PrecosPageTest < ActionDispatch::IntegrationTest
     assert_select ".col-price", text: /Preço(?!\/kg)/
     assert_select ".price-value", text: /R\$ 5\.00\/kg/
   end
+
+  test "multi-pack variant collapses to one representative row on /precos" do
+    product = Product.create!(name: "Manga", category: "fruta", section: 1)
+    palmer = Variant.create!(
+      product: product, name: "Palmer", pricing_mode: "per_kg", default_for_product: true
+    )
+    tommy = Variant.create!(
+      product: product, name: "Tommy Atkins", pricing_mode: "per_kg"
+    )
+    product.update!(default_variant: palmer)
+
+    latest = Bulletin.where(market: "ceasa-rj").order(price_date: :desc).first
+    Price.create!(
+      bulletin: latest, variant: palmer, section: 1,
+      raw_unit: "Cx 8 kg", original_unit: "kg",
+      modal: 64.00, price_per_kg: 8.00
+    )
+    Price.create!(
+      bulletin: latest, variant: tommy, section: 1,
+      raw_unit: "Cx 18 kg", original_unit: "kg",
+      modal: 109.98, price_per_kg: 6.11
+    )
+    Price.create!(
+      bulletin: latest, variant: tommy, section: 1,
+      raw_unit: "Cx 5 kg", original_unit: "kg",
+      modal: 65.00, price_per_kg: 13.00
+    )
+
+    get precos_path
+    assert_response :success
+
+    assert_select ".variant-name", text: "Tommy Atkins", count: 1
+    assert_select ".variant-name", text: "Palmer", count: 1
+  end
 end

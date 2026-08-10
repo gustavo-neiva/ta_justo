@@ -202,7 +202,7 @@ bin/rubocop && bin/rails test
 
 ## Phase 2 — /precos grouping: manga dedupe + click-through to the clicked variety
 
-- [IN PROGRESS] T2.1 (normal, serial) Collapse each variant to its representative row on /precos (fix duplicate Tommy Atkins)
+- [x] T2.1 (normal, serial) Collapse each variant to its representative row on /precos (fix duplicate Tommy Atkins)
       touches: app/controllers/precos_controller.rb
       do: The index renders every `Price` row, so a variant with two packs on one bulletin (Tommy Atkins:
           Cx 18 kg→6.11 and Cx 5 kg→13.00) shows twice. Collapse to ONE row per variant using the same
@@ -224,7 +224,7 @@ bin/rubocop && bin/rails test
       constraints: dedupe by variant only within a section's loaded rows; do not change section grouping, timing,
           or the fair_relevant filter. Add a test asserting one Tommy Atkins row on /precos.
 
-- [ ] T2.2 (trivial, serial) Link each /precos variety row to that exact variant (?variant=ID)
+- [IN PROGRESS] T2.2 (trivial, serial) Link each /precos variety row to that exact variant (?variant=ID)
       touches: app/views/precos/index.html.erb
       do: In the multi-type branch, the per-variant `link_to product_path(product.slug)` carries no variant, so
           clicking any variety opens the default (Palmer for Manga). Pass the variant id:

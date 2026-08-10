@@ -29,6 +29,13 @@ class PrecosController < ApplicationController
 
       next if section_prices.empty?
 
+      # Collapse multi-pack variants to one representative row (same rule as
+      # Variant#representative_price) so a variant like Manga/Tommy Atkins
+      # does not render twice on /precos.
+      section_prices = section_prices.to_a
+                                     .group_by(&:variant)
+                                     .map { |variant, rows| variant.pick_representative(rows) }
+
       # Group by product so repeating names are collapsed
       products_with_prices = section_prices.group_by { |p| p.variant.product }
                                             .sort_by { |product, _| product.name }
