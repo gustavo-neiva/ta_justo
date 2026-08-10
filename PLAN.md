@@ -72,7 +72,7 @@ bin/rubocop && bin/rails test
 > No feature task runs before this is green. Bootstraps "no green, no commit".
 > `.ratchet.conf` VERIFY_CMD is already `bin/rubocop && bin/rails test` (human-owned; do not touch).
 
-- [ ] T0.1 (trivial, serial) Establish the baseline green gate
+- [x] T0.1 (trivial, serial) Establish the baseline green gate
       do: Run VERIFY_CMD. Confirm rubocop clean + all minitest green. This is the baseline every later task
           must preserve. Record the test count in LEARNINGS.md (append one line).
       accept: Given T0.1 applied, Then `bin/rubocop && bin/rails test` is fully green.
@@ -85,7 +85,7 @@ bin/rubocop && bin/rails test
 > lives in the ONE place all callers route through (Variant representative-row selection + the per_unit
 > verdict branch), not per-page.
 
-- [ ] T1.1 (hard, serial) Select & price direct-unit rows (original_unit='unit') everywhere representative-row selection runs
+- [IN PROGRESS] T1.1 (hard, serial) Select & price direct-unit rows (original_unit='unit') everywhere representative-row selection runs
       touches: app/models/variant.rb, app/services/fair_price_verdict.rb, app/controllers/products_controller.rb
       do: A per_unit variant has two CEASA sub-cases: **direct-unit** (`original_unit="unit"`, price IS `modal`,
           `price_per_kg` nil — Coco Verde, R$3.30/peça) and **weight-derived** (`original_unit="kg"`,

@@ -7,3 +7,4 @@
 
 - _(example)_ `npm test` must run from the repo root; a nested cwd makes it red.
 - RuboCop `Lint/Syntax` FATALITIES mask all downstream style cops: a file with a parse error reports only syntax offenses, hiding autocorrectable ones (e.g. `Layout/TrailingEmptyLines`) until the syntax is fixed. When fixing a syntax error, expect NEW style offenses to appear post-fix — those belong to the autocorrect sweep (T1.1), not the syntax-fix task.
+- Baseline green gate (T0.1): 109 runs, 312 assertions, 0 failures/errors/skips — this is the count every later task must preserve or grow.
