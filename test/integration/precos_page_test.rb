@@ -33,4 +33,12 @@ class PrecosPageTest < ActionDispatch::IntegrationTest
     assert pills.any?, "expected at least one época pill"
     assert_match(/preço normal/, pills.first.text)
   end
+
+  test "price column uses honest unit suffixes, never a modal number under /kg" do
+    get precos_path
+    assert_response :success
+
+    assert_select ".col-price", text: /Preço(?!\/kg)/
+    assert_select ".price-value", text: /R\$ 5\.00\/kg/
+  end
 end

@@ -51,7 +51,7 @@
             <div class="price-list">
               <div class="price-list-header">
                 <span class="col-product">Produto</span>
-                <span class="col-price">Preço/kg</span>
+                <span class="col-price">Preço</span>
                 <span class="col-epoca">Época</span>
               </div>
 
@@ -63,15 +63,7 @@
                       <span class="badge badge-sm product-group-count"><%= prices.size %> tipos</span>
                     </div>
                     <% prices.each do |price| %>
-                      <%
-                        display_price = if price.price_per_kg
-                          "R$ #{number_with_precision(price.price_per_kg, precision: 2)}/kg"
-                        elsif price.modal
-                          "R$ #{number_with_precision(price.modal, precision: 2)}"
-                        else
-                          "S/C"
-                        end
-                      %>
+                      <% display_price = price_with_unit(price) %>
                       <%= link_to product_path(product.slug), class: "price-row price-row--variant" do %>
                         <span class="col-product variant-name"><%= price.variant.name %></span>
                         <span class="col-price price-value"><%= display_price %></span>
@@ -80,16 +72,8 @@
                     <% end %>
                   </div>
                 <% else %>
-                  <%
-                    price = prices.first
-                    display_price = if price.price_per_kg
-                      "R$ #{number_with_precision(price.price_per_kg, precision: 2)}/kg"
-                    elsif price.modal
-                      "R$ #{number_with_precision(price.modal, precision: 2)}"
-                    else
-                      "S/C"
-                    end
-                  %>
+                  <% price = prices.first %>
+                  <% display_price = price_with_unit(price) %>
                   <%= link_to product_path(product.slug), class: "price-row" do %>
                     <span class="col-product product-name"><%= product.name %></span>
                     <span class="col-price price-value"><%= display_price %></span>

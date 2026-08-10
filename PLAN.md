@@ -147,7 +147,7 @@ bin/rubocop && bin/rails test
           (a) Coco Verde `latest_price` returns the unit row; (b) verdict for Verde is per-unidade == modal and
           never raises; (c) a weight-derived per_unit variant still prices `price_per_kg × avg_weight_kg`.
 
-- [IN PROGRESS] T1.2 (normal, serial) State how each price is derived (metrics transparency) on detail + /precos
+- [x] T1.2 (normal, serial) State how each price is derived (metrics transparency) on detail + /precos
       touches: app/views/products/show.html.erb, app/views/precos/index.html.erb, app/controllers/precos_controller.rb, app/helpers/application_helper.rb
       do: Show each price in the unit CEASA quotes; only explain a conversion when one actually happened
           (odd packaging → /kg). Builds on T1.1's direct-unit branch (annotation 3, principle 6).
@@ -202,7 +202,7 @@ bin/rubocop && bin/rails test
 
 ## Phase 2 — /precos grouping: manga dedupe + click-through to the clicked variety
 
-- [ ] T2.1 (normal, serial) Collapse each variant to its representative row on /precos (fix duplicate Tommy Atkins)
+- [IN PROGRESS] T2.1 (normal, serial) Collapse each variant to its representative row on /precos (fix duplicate Tommy Atkins)
       touches: app/controllers/precos_controller.rb
       do: The index renders every `Price` row, so a variant with two packs on one bulletin (Tommy Atkins:
           Cx 18 kg→6.11 and Cx 5 kg→13.00) shows twice. Collapse to ONE row per variant using the same

@@ -19,7 +19,7 @@
         <div class="stat-label">Último preço</div>
         <div class="stat-value">
           <% if @stats[:latest] %>
-            R$ <%= number_with_precision(@stats[:latest], precision: 2) %>/kg
+            R$ <%= number_with_precision(@stats[:latest], precision: 2) %>/<%= @unit_label %>
           <% else %>
             S/C
           <% end %>
@@ -30,6 +30,9 @@
             <span class="stale-badge">desatualizado</span>
           <% end %>
         </div>
+        <p class="stat-basis" style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-top: var(--space-xs); margin-bottom: 0;">
+          <%= price_basis_line(@variant, @latest_price) %>
+        </p>
       </div>
 
       <div class="stat-card">
@@ -175,6 +178,7 @@
         <div class="accordion-content">
           <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-md);">
             Preços de atacado na origem. A linha marcada é a usada no cálculo acima.
+            R$/kg de embalagens em caixa/saco = preço modal ÷ peso da embalagem CEASA.
           </p>
           <div class="raw-data-table-wrapper">
             <table class="raw-data-table">
