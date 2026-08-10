@@ -1,33 +1,35 @@
-# PLAN.md — Tá Justo?: filter integrity, real-terms chart, prices UX, pt-BR + branding
+# PLAN.md — Tá Justo?: post-QA fixes (unit pricing, metrics clarity, manga, PDF link, live search)
 
 Tracker grammar: `[ ]` open → `[IN PROGRESS]` → `[x]` done. Tags: `(trivial|normal|hard)` and `(serial)`.
 
-**Goal (rearticulated):** Deliver seven product changes without regressing the green gate: (1) toggle the
-seasonality line via CSS instead of a D3 re-render, (2) add the author's name + site to About/footer, (3) deflate
-the **historical price chart** to real terms (the verdict/timing path is already deflated — only `ChartSeries` is
-still nominal), (4) redesign the /precos tab so época pills stop clipping, (5) make every chart filter change
-preserve all other selected filters, (6) add a console-log easter egg with cornucopia ASCII art, (7) a pt-BR
-localization pass that removes anglicisms ("checker" → "verificador"). Grouped into the three user-requested phases.
+**Goal (rearticulated):** Fix five defects found in manual QA without regressing the green gate.
+(1) The checker `/` uses a static `<select>` — replace it with a **live search** that also matches
+subcategories (variant/type names like "Espada", "Seco"). (2) Surface the **CEASA PDF link** for each
+price day (already stored in `bulletins.source_url`, never shown). (3) Make **R$/kg metrics explicit** —
+every weight type per product must state how its price/kg (or /unidade, /dúzia) is derived from CEASA
+pack-weight normalization, and the label must match the real unit. (4) **Coco is broken** ("Nenhum preço
+encontrado para Coco") because its default variant **Verde** is sold as bare `"Unid"` (direct piece price,
+`price_per_kg = nil`), which representative-row selection drops. (5) **Manga** shows a duplicate
+"Tommy Atkins" (two pack sizes on one bulletin) and clicking any variety opens the default variant instead
+of the clicked one.
 
 ## Design constraints (read before ANY task — non-negotiable)
-1. **VERIFY_CMD is the only "done" signal.** A task is done when `bin/rubocop && bin/rails test` is green AND the
-   task's own verify command passes. No green, no commit. `.ratchet.conf` was already corrected to
-   `VERIFY_CMD=bin/rubocop && bin/rails test` by the human (the loop FORBIDS agent turns from touching that file,
-   so no task edits it — do not attempt to).
-2. **Zero data / behavior regressions on the verdict path.** `FairPriceVerdict`, `MarketTiming`, `PriceHistory`,
-   and `BuyTiming` already deflate correctly (IPCA série 1737 / INPC 188 — the agrobr "série 433 as level" bug is
-   already avoided). Do NOT touch those services except where a task names them. The chart is the only nominal
-   surface.
-3. **Ruby via asdf.** Shell PATH must include `$HOME/.asdf/shims` (system Ruby breaks bundler). Prefix VERIFY
-   with `export PATH="$HOME/.asdf/shims:$PATH"` when a turn's shell can't find the right Ruby.
-4. **STAGE, don't commit/push**, unless explicitly told. (User reviews first.)
-5. **No new dependencies.** Reuse the existing deflation math (`PriceHistory#deflate` + forward-fill), Stimulus,
-   vanilla CSS. No new gems, no new JS libs.
-6. **Deflation fallback is graceful, never a crash.** If IPCA index is missing or >90d stale, the chart shows
-   **nominal** prices (same rule `PriceHistory` uses via its Null path) — it must never blank the chart.
-7. **No JS test runner exists.** JS-only changes (seasonality toggle, easter egg) are gated by (a) a `grep`
-   self-check in the task's `verify` line proving the code shape is present, and (b) the server-rendered markup
-   that drives them, asserted in a Rails integration test. Do not add a JS framework to test three lines.
+1. **VERIFY_CMD is the only "done" signal.** A task is done when `bin/rubocop && bin/rails test` is green
+   AND the task's own verify command passes. No green, no commit. `.ratchet.conf` is human-owned — the loop
+   FORBIDS agent turns from touching it. Do not create a task that edits it.
+2. **Ruby via asdf.** Shell PATH must include `$HOME/.asdf/shims` (system Ruby breaks bundler). Prefix every
+   verify line with `export PATH="$HOME/.asdf/shims:$PATH"`.
+3. **STAGE, don't commit/push**, unless explicitly told. (User reviews first; the loop owns commits.)
+4. **No new dependencies.** Reuse Stimulus, existing services, vanilla CSS/ERB. The live search is
+   client-side over the already-loaded core basket — no new gem, no new JS lib, no new endpoint in v1.
+5. **Zero regression on the verdict path for products that already work.** `FairPriceVerdict`,
+   `MarketTiming`, `BuyTiming`, `PriceHistory` are correct for per_kg/per_dozen and weight-derived per_unit.
+   Only extend the **direct-unit** (`original_unit='unit'`) branch; do not alter existing per_kg/per_dozen math.
+6. **Respect the original CEASA unit; never fabricate.** Display each price in the unit CEASA actually
+   quotes: if the bulletin gives a **unit** price (bare "Unid" — Coco Verde), show **/unidade** from `modal`;
+   if it gives a **kg** price (bare "kg"), show **/kg**. Convert to /kg **only** for odd packaging (boxes/
+   sacks like `Cx 18 kg`, `SC 30 KG`) where `price_per_kg = modal ÷ pack weight`. Do NOT invent a /kg via a
+   guessed `avg_weight_kg`; it may only *estimate* a secondary "≈ R$/kg" for display, clearly marked "≈".
 
 ## VERIFY_CMD (the green gate — run after every task)
 ```bash
@@ -35,36 +37,42 @@ export PATH="$HOME/.asdf/shims:$PATH"
 bin/rubocop && bin/rails test
 ```
 
-## State at plan start (2026-08-04, verified live)
-- Prior PLAN.md (green gate / CI / PWA / hygiene) is fully `[x]` and in git history; this file supersedes it.
-- `app/services/chart_series.rb` → returns **nominal** `{ date, price }` points. `ProductsController#show` feeds it
-  straight to the D3 controller. The verdict path (`PriceHistory`) is deflated; the chart is not. (Req 3 gap.)
-- `app/javascript/controllers/d3_line_chart_controller.js` → `showSeasonalValueChanged()` calls `this.draw()`
-  (full SVG teardown + rebuild) on every checkbox toggle. (Req 1.)
-- `app/views/products/_chart.html.erb` → period pills link `product_path(slug, variant:, period:)` — drop
-  `check_price` and any other param. `show.html.erb` variant links link `(variant:, period:)` — drop `check_price`.
-  Changing one filter silently resets the others. (Req 5.)
-- `app/assets/stylesheets/domain/ta_justo.css` → `.price-list-header,.price-row,.price-row--variant` grid is
-  `grid-template-columns: 1fr 130px 145px`; `.col-epoca { text-align:right }`; `.epoca-pill { white-space:nowrap }`.
-  Text "tipicamente preço normal" overflows the 145px época column and is clipped (see screenshot). (Req 4.)
-- "checker" anglicism in: `app/views/products/show.html.erb` (×3: class `checker-container`, `checker-form`,
-  "Novo checker"), `app/views/checks/show.html.erb` (×2: `checker-container`, `checker-form`),
-  `app/views/precos/index.html.erb` (×2: "Voltar ao checker"), `app/views/pages/sobre.html.erb` (×1),
-  `app/controllers/checks_controller.rb` (comment), `config/routes.rb` (comment), and CSS selectors in
-  `app/assets/stylesheets/domain/ta_justo.css` + `app/assets/stylesheets/layouts/landing_page.css`. (Req 7.)
-- `app/views/shared/_footer.html.erb` and `app/views/pages/sobre.html.erb` have no author attribution. (Req 2/6.)
-- `app/javascript/application.js` is 4 lines; no easter egg. (Req 6.)
-- Deflation reference: `tmp/research/agrobr-priorart.md`. Correct IPCA level = série 1737 (NOT 433). Forward-fill
-  monthly index; base = latest published month. Formula: `real = nominal × (index_base / index_data)`.
+## State at plan start (verified live against prod-derived dev DB)
+- Prior PLAN.md (filter integrity / deflated chart / pt-BR / branding) is fully `[x]` and in git history;
+  this file supersedes it.
+- **Coco** (`products.id=11`, slug `coco`): default_variant = **Verde** (`variants.id=19`, `pricing_mode=per_unit`,
+  `avg_weight_kg=1.2`). All 799 Verde rows are `raw_unit="Unid"`, `original_unit="unit"`, `modal≈3.30`,
+  **`price_per_kg=nil`**. `UnitNormalizer#per_kg` returns nil for bare "Unid" (SPECIAL 4) — correct.
+  `Variant#latest_price` / `#representative_price` / `#pick_representative` filter `where.not(price_per_kg: nil)`,
+  so Verde yields **no** representative row → `ProductsController#show` sets
+  `@error = "Nenhum preço encontrado para Coco"`. `/precos` survives only via its `modal` fallback.
+  Coco **Seco** (`id=20`, `raw_unit="SC 30 KG"`) has `price_per_kg≈4.33` and would resolve — the page just
+  never reaches it because it defaults to Verde.
+- **FairPriceVerdict#call_per_unit** assumes `ceasa_per_unit = price_per_kg × avg_weight_kg` and hard-raises
+  without `avg_weight_kg`; it cannot price a direct-unit row (would multiply nil).
+- **Manga** (`products.id=23`, slug `manga`, default_variant=Palmer `id=39`): on the latest bulletin, variant
+  **Tommy Atkins** (`id=40`) has TWO rows — `Cx 18 kg`→6.11 and `Cx 5 kg`→13.00. `precos/index.html.erb`
+  renders **every** `Price` row in the multi-type branch, so Tommy Atkins appears twice. The variant `link_to`
+  is `product_path(product.slug)` with **no** `variant:`, so every variety opens the default (Palmer).
+  `ProductsController#show` already honors `?variant=ID`.
+- **bulletins.source_url** holds the exact PDF URL (e.g. the 07/08/2026 boletim). Not surfaced on any page.
+- **/precos** header hardcodes the column label "Preço/kg" and, for direct-unit/dozen rows, shows a `modal`
+  number under a "/kg" heading (misleading). Detail page prints "R$ x/kg" with no statement of the pack
+  weight used to derive it.
+- `CoreBasket.checkable_list` returns `{slug, name, default_variant}` for the 37 core products; variants are
+  loaded per product only on the detail page. `list_filter_controller.js` already implements a debounced
+  client filter (used on /precos).
+- Existing tests: `test/models/variant_representative_price_test.rb`,
+  `test/controllers/products_controller_representative_price_test.rb`,
+  `test/integration/precos_page_test.rb`, `test/services/fair_price_verdict_percentile_test.rb`.
 
 ---
 
 ## Milestone 0 — baseline green gate (serial)
 > No feature task runs before this is green. Bootstraps "no green, no commit".
-> NOTE: `.ratchet.conf` VERIFY_CMD is already fixed to `bin/rubocop && bin/rails test` (human-owned file, agent
-> turns are FORBIDDEN from editing it). Do not create a task that touches `.ratchet.conf`.
+> `.ratchet.conf` VERIFY_CMD is already `bin/rubocop && bin/rails test` (human-owned; do not touch).
 
-- [x] T0.1 (trivial, serial) Establish the baseline green gate
+- [ ] T0.1 (trivial, serial) Establish the baseline green gate
       do: Run VERIFY_CMD. Confirm rubocop clean + all minitest green. This is the baseline every later task
           must preserve. Record the test count in LEARNINGS.md (append one line).
       accept: Given T0.1 applied, Then `bin/rubocop && bin/rails test` is fully green.
@@ -72,345 +80,256 @@ bin/rubocop && bin/rails test
 
 ---
 
-## Phase 1 — State Management & Core Logic (Filters & Inflation)
-> Ratchet milestone. Filter integrity first (pure view/link change), then the deflated chart series.
+## Phase 1 — Data correctness: direct-unit pricing (Coco) + metrics honesty
+> The verdict/detail path must not drop or misprice direct-unit variants. This is the root-cause fix; it
+> lives in the ONE place all callers route through (Variant representative-row selection + the per_unit
+> verdict branch), not per-page.
 
-- [x] T1.1 (hard) Preserve ALL current query params when switching chart period or variant
-      touches: app/views/products/_chart.html.erb, app/views/products/show.html.erb
-      do: Today the period pills link `product_path(@product.slug, variant: @variant.id, period: value)` and the
-          variant links link `product_path(@product.slug, variant: v.id, period: @period)`. Each rebuilds the URL
-          from a hardcoded subset, so switching period drops `check_price` (and any future filter) and switching
-          variant drops `check_price` too. Fix by merging the live query string: build the link params from
-          `request.query_parameters.merge(...)` so every link carries the full current filter state and only
-          overrides the one dimension it changes. In `_chart.html.erb`, the period pill becomes
-          `product_path(@product.slug, request.query_parameters.merge(period: value))`. In `show.html.erb`, the
-          variant link becomes `product_path(@product.slug, request.query_parameters.merge(variant: v.id))`.
-          `request.query_parameters` excludes the `:id`/`:controller`/`:action` route params, so it is safe to
-          splat. Reason: changing one filter must strictly preserve every other selected filter (req 5).
+- [ ] T1.1 (hard, serial) Select & price direct-unit rows (original_unit='unit') everywhere representative-row selection runs
+      touches: app/models/variant.rb, app/services/fair_price_verdict.rb, app/controllers/products_controller.rb
+      do: A per_unit variant has two CEASA sub-cases: **direct-unit** (`original_unit="unit"`, price IS `modal`,
+          `price_per_kg` nil — Coco Verde, R$3.30/peça) and **weight-derived** (`original_unit="kg"`,
+          `price_per_kg` present, unit price = `price_per_kg × avg_weight_kg` — Melancia, Abacaxi). Today the
+          selection helpers keep only `where.not(price_per_kg: nil)`, silently dropping every direct-unit row so
+          the variant looks priceless. Fix the shared selection + the per_unit verdict/stats to treat a
+          direct-unit row as a first-class priced row.
+          (A) `Variant#representative_price(bulletin:)`: when `pricing_mode == "per_unit"`, consider rows that are
+              EITHER `original_unit="unit"` OR have `price_per_kg` present. Prefer... keep it deterministic:
+              reuse the smallest-retail-pack rule for weight-derived rows; for direct-unit rows (no pack weight)
+              fall back to stable min id. If both kinds exist for a variant, prefer the direct-unit row (that is
+              the piece price the shopper pays).
+          (B) `Variant#pick_representative(rows)` and `#representative_series(months:)`: same per_unit rule — do
+              not `where.not(price_per_kg: nil)` for per_unit; include `original_unit="unit"` rows. Keep per_kg
+              and per_dozen branches byte-identical.
+          (C) `Variant#latest_price`: for per_unit, the scope must include direct-unit rows (drop the kg-only
+              filter for this mode) so Coco Verde resolves a latest bulletin.
+          (D) `FairPriceVerdict#call_per_unit`: branch on the representative row. If it is direct-unit
+              (`row.original_unit == "unit"` / `price_per_kg` nil), `ceasa_per_unit = row.modal.to_f` and do NOT
+              require `avg_weight_kg`. Else keep `price_per_kg × avg_weight_kg`. `comparable_series(:per_unit)`
+              must mirror this (direct-unit → `modal`; weight-derived → `price_per_kg × avg_weight_kg`).
+          (E) `ProductsController#comparable_for`: same per_unit branch (direct-unit → `price.modal.to_f`).
+          Reason (root cause): representative-row selection is the single seam every surface routes through
+          (verdict, stats, /precos, detail). Fixing it here fixes Coco Verde AND any other bare-"Unid" variant at
+          once, instead of patching each page.
       snippet:
-          <%# period pill %>
-          <%= link_to label,
-                product_path(@product.slug, request.query_parameters.merge(period: value)),
-                data: { turbo_frame: "product-chart" },
-                class: "pill-option#{' active' if @period == value}" %>
-          <%# variant link %>
-          <%= link_to v.name,
-                product_path(@product.slug, request.query_parameters.merge(variant: v.id)),
-                class: "variant-link #{'active' if v.id == @variant.id}" %>
-      accept:
-          Given a product page loaded with ?variant=V&period=90&check_price=8.50
-          When the rendered period pills and variant links are inspected
-          Then every one of those links' href includes variant, period AND check_price=8.50, each overriding only
-          its own dimension
-      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test test/integration/product_filter_preservation_test.rb
-      constraints: additive to the views only; do not change ProductsController param parsing; the "active" state
-          logic stays as-is. Add the new integration test asserting hrefs contain all three params.
-
-- [x] T1.2 (hard, serial) Add a real-terms (deflated) option to ChartSeries, reusing existing IPCA math
-      touches: app/services/chart_series.rb
-      do: `ChartSeries#points` returns nominal prices. Add deflation so the chart can show real terms, reusing the
-          exact IBGE formula the verdict path already uses (`real = nominal × (index_base / index_data)`), base =
-          latest published IPCA month, forward-filled per month (agrobr prior art: série 1737 is already what
-          `PriceIndex` stores — do NOT reintroduce série 433). Implementation: give the constructor a
-          `deflated: false` keyword. When `deflated: true`, build a `month(Date bom) → index_level` lookup once
-          from `PriceIndex.where(index_name: "ipca")`, capture `base_level` = level of the latest month, and in
-          `point_for` multiply the nominal value by `base_level / level_for(bulletin_month)` using forward-fill
-          (latest month `<=` the bulletin month). Fallbacks (constraint 6): if there is no IPCA data at all, or the
-          latest IPCA month is >90 days stale (reuse `PriceHistory::STALE_THRESHOLD_DAYS = 90`), return nominal
-          points unchanged — never blank the series. Keep the default (`deflated: false`) byte-identical to today.
-      snippet:
-          def initialize(variant, period: "365", deflated: false)
-            @variant = variant; @period = period; @deflated = deflated
+          # Variant#pick_representative
+          def pick_representative(rows)
+            case pricing_mode
+            when "per_dozen"
+              rows.select { |p| p.original_unit == "dozen" }.min_by(&:id)
+            when "per_unit"
+              direct = rows.select { |p| p.original_unit == "unit" }
+              return direct.min_by(&:id) if direct.any?
+              rows.select(&:price_per_kg).min_by { |p| [ PackSize.kg(p.raw_unit) || Float::INFINITY, p.id ] }
+            else
+              rows.select(&:price_per_kg).min_by { |p| [ PackSize.kg(p.raw_unit) || Float::INFINITY, p.id ] }
+            end
           end
-          # in point_for, after computing nominal `value`:
-          value *= deflation_factor(price.bulletin.price_date) if @deflated
-          # deflation_factor forward-fills: base_level / level_at_or_before(month)
-          # returns 1.0 when index missing or stale (nominal fallback)
+          # FairPriceVerdict#call_per_unit (head)
+          latest = representative_latest
+          raise "Sem preço CEASA para #{@variant.name}" unless latest
+          if latest.original_unit == "unit"
+            ceasa_per_unit = latest.modal.to_f
+          else
+            raise "Variante #{@variant.name} sem avg_weight_kg" unless @variant.avg_weight_kg&.positive?
+            ceasa_per_unit = latest.price_per_kg.to_f * @variant.avg_weight_kg.to_f
+          end
       accept:
-          Given a variant with prices spanning months whose IPCA levels differ
-          When ChartSeries.new(variant, deflated: true).points is called and IPCA data is fresh
-          Then each older point's price is scaled by base_level/month_level (strictly ≥ nominal for past inflation)
-          And when no IPCA data exists (or latest is >90d stale) the points equal the nominal series exactly
-      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test test/services/chart_series_test.rb
-      constraints: reuse the 90-day stale rule from PriceHistory; no new gem; default deflated:false unchanged.
-          Add chart_series_test cases: (a) deflated scales past prices up, (b) no-index → nominal, (c) stale → nominal.
+          Given Coco (default variant Verde, sold as bare "Unid")
+          When the product detail page and the verdict for Verde are computed
+          Then `@variant.latest_price` returns the "Unid" row (not nil), the page does NOT show
+               "Nenhum preço encontrado para Coco", and FairPriceVerdict returns a per-unidade Result with
+               ceasa_comparable == modal, without raising
+          And Coco Seco (per-kg source) and every existing per_kg/per_dozen/weight-derived per_unit variant
+               (Melancia, Abacaxi, ovo) resolve exactly as before
+      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test test/models/variant_representative_price_test.rb test/controllers/products_controller_representative_price_test.rb test/services/fair_price_verdict_percentile_test.rb
+      constraints: only the per_unit branches change; per_kg/per_dozen paths byte-identical. Add test cases:
+          (a) Coco Verde `latest_price` returns the unit row; (b) verdict for Verde is per-unidade == modal and
+          never raises; (c) a weight-derived per_unit variant still prices `price_per_kg × avg_weight_kg`.
 
-- [x] T1.3 (normal, serial) Render the chart in real terms and label it as such
-      touches: app/controllers/products_controller.rb, app/views/products/_chart.html.erb
-      do: With T1.2 shipped, switch the detail chart to real terms so historical prices are inflation-adjusted
-          (req 3). Two exact edits:
-          (A) `app/controllers/products_controller.rb` — find the line
-          `    @chart_data    = ChartSeries.new(@variant, period: @period).points`
-          and replace it verbatim with
-          `    @chart_data    = ChartSeries.new(@variant, period: @period, deflated: true).points`
-          (B) `app/views/products/_chart.html.erb` — the price legend span currently reads exactly:
-          `        <span class="legend-item"><span class="legend-swatch legend-price"></span>Preço CEASA (R$/<%= @unit_label %>)</span>`
-          Replace the visible label text so it becomes exactly:
-          `        <span class="legend-item"><span class="legend-swatch legend-price"></span>Preço CEASA em R$ de hoje (IPCA) — R$/<%= @unit_label %></span>`
-          Reason: the /precos época tags already say "Calculado em reais de hoje (IPCA)"; the chart must match that
-          promise. The seasonality overlay (median) stays as-is ("Típico do mês (mediana histórica)") — do NOT edit it.
+- [ ] T1.2 (normal, serial) State how each price is derived (metrics transparency) on detail + /precos
+      touches: app/views/products/show.html.erb, app/views/precos/index.html.erb, app/controllers/precos_controller.rb, app/helpers/application_helper.rb
+      do: Show each price in the unit CEASA quotes; only explain a conversion when one actually happened
+          (odd packaging → /kg). Builds on T1.1's direct-unit branch (annotation 3, principle 6).
+          (A) `products/show.html.erb`: under the "Último preço" stat, render one basis line sourced from the
+              representative `@latest_price` row:
+              - odd-packaging per_kg (pack weight parses, e.g. `Cx 18 kg`/`SC 30 KG`):
+                `R$ <price_per_kg>/kg = modal R$<modal> ÷ <pack kg> kg (embalagem <raw_unit>, CEASA)`
+                (pack kg via `PackSize.kg(raw_unit)`) — this is the only case that gets a "÷ peso" derivation.
+              - bare-kg per_kg (raw_unit already "kg", no conversion): `R$ <price_per_kg>/kg (preço CEASA por kg)`.
+              - direct-unit (`original_unit="unit"`): `R$ <modal>/unidade (preço CEASA por peça)` and, only if
+                `avg_weight_kg` present, a secondary `≈ R$ <modal/avg_weight_kg>/kg (peça ~<g>g estimada)`.
+              - weight-derived per_unit: `R$ <calc>/unidade ≈ R$/kg × ~<g>g (estimado)`.
+              - per_dozen: `R$ <modal/30>/dúzia = caixa R$<modal> ÷ 30 dz (CEASA)`.
+              Add a small helper `price_basis_line(variant, price)` in ApplicationHelper returning the pt-BR
+              string; use existing values already loaded — no new query.
+          (B) `precos/index.html.erb`: the column header hardcodes "Preço/kg". Replace with a neutral "Preço"
+              label, and render each row's value with its true unit suffix (`/kg`, `/unidade`, `/dúzia`) from the
+              variant's `pricing_mode` — never show a `modal` number under a "/kg" heading. Reuse the existing
+              display-price branch (`price_per_kg` → `/kg`; else `modal` → unit-appropriate suffix).
+          (C) Raw-data table caption on the detail page: add one sentence stating the normalization rule
+              ("R$/kg de embalagens em caixa/saco = preço modal ÷ peso da embalagem CEASA"). No new query.
       snippet:
-          @chart_data    = ChartSeries.new(@variant, period: @period, deflated: true).points
+          # ApplicationHelper
+          def price_basis_line(variant, price)
+            case variant.pricing_mode
+            when "per_dozen"
+              "R$ %.2f/dúzia = caixa R$ %.2f ÷ 30 dz (CEASA)" % [ price.modal.to_f / 30, price.modal.to_f ]
+            when "per_unit"
+              if price.original_unit == "unit"
+                "R$ %.2f/unidade (preço CEASA por peça)" % price.modal.to_f
+              else
+                "R$ %.2f/unidade ≈ R$ %.2f/kg × ~%dg (estimado)" %
+                  [ price.price_per_kg.to_f * variant.avg_weight_kg.to_f, price.price_per_kg.to_f, (variant.avg_weight_kg.to_f * 1000).round ]
+              end
+            else # per_kg
+              kg = PackSize.kg(price.raw_unit)
+              kg ? "R$ %.2f/kg = modal R$ %.2f ÷ %g kg (embalagem %s, CEASA)" % [ price.price_per_kg.to_f, price.modal.to_f, kg, price.raw_unit ] : "R$ %.2f/kg (preço CEASA por kg)" % price.price_per_kg.to_f
+            end
+          end
       accept:
-          Given a product detail page with fresh IPCA data
-          When the chart renders
-          Then the price series is the deflated series AND the legend states it is in "R$ de hoje (IPCA)"
-      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test test/controllers/products_controller_test.rb && grep -q "R\$ de hoje" app/views/products/_chart.html.erb
-      constraints: only the one controller line + the legend text change; do not alter seasonal/USD/SMA handling.
+          Given a box-packaged per_kg product (Manga, embalagem Cx 18 kg) detail page
+          Then a basis line states "= modal R$… ÷ … kg (embalagem …, CEASA)"
+          And given a bare-kg per_kg product the basis line states "/kg (preço CEASA por kg)" with no "÷ peso"
+          And given Coco Verde (direct-unit) the basis line states "/unidade (preço CEASA por peça)" with NO
+              bare "/kg" claim
+          And on /precos every row's price suffix matches its variant unit (no "/kg" over a per-unidade modal)
+      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test test/integration/precos_page_test.rb test/controllers/products_controller_representative_price_test.rb
+      constraints: additive view/helper only; do not change any pricing math. Add an assertion that a direct-unit
+          product renders "/unidade" and a per_kg product renders the "÷ … kg" basis string.
 
 ---
 
-## Phase 2 — UI/UX & CSS Optimizations (Seasonality toggle, Prices pills)
+## Phase 2 — /precos grouping: manga dedupe + click-through to the clicked variety
 
-- [x] T2.1 (hard, serial) Toggle the seasonality line via CSS class, not a D3 re-render
-      touches: app/javascript/controllers/d3_line_chart_controller.js, app/views/products/_chart.html.erb,
-               app/assets/stylesheets/components/chart.css
-      do: Today `toggleSeasonal` flips `showSeasonalValue`, and `showSeasonalValueChanged()` calls `this.draw()` —
-          a full SVG teardown/rebuild just to hide one path. Change to CSS visibility: (1) in `draw()`, always
-          append the seasonal path when `seasonalValue.length > 1` (drop the `showSeasonalValue &&` guard on the
-          draw side) and give it `.attr("class", "seasonal-line")`. (2) Replace `toggleSeasonal` so it toggles a
-          class on `this.chartTarget` (e.g. `this.chartTarget.classList.toggle("seasonal-hidden", !checked)`)
-          instead of setting the value. (3) Delete the `showSeasonalValueChanged()` redraw hook (and the now-unused
-          `showSeasonal` value can stay for initial state but must no longer trigger `draw`). (4) In `chart.css`
-          add `.seasonal-hidden .seasonal-line { display: none; }`. (5) In `_chart.html.erb`, the checkbox keeps
-          `data-action="change->d3-line-chart#toggleSeasonal"` and `checked`. Reason: hiding a line is a pure
-          presentation change; re-running D3 (scales, axes, animation, crosshair rebuild) on every toggle is
-          wasteful and re-triggers the 800ms line-draw animation (req 1).
+- [ ] T2.1 (normal, serial) Collapse each variant to its representative row on /precos (fix duplicate Tommy Atkins)
+      touches: app/controllers/precos_controller.rb
+      do: The index renders every `Price` row, so a variant with two packs on one bulletin (Tommy Atkins:
+          Cx 18 kg→6.11 and Cx 5 kg→13.00) shows twice. Collapse to ONE row per variant using the same
+          representative-row rule the rest of the app uses. In `PrecosController#index`, after loading
+          `section_prices`, reduce to one price per variant via
+          `Variant#representative_price(bulletin: @latest_bulletin)` (or pick, per variant, the min-pack row from
+          the already-loaded set to avoid an extra query). Then `group_by { |p| p.variant.product }` over the
+          deduped set. Both pack prices remain visible on the detail page's raw-data table.
       snippet:
-          toggleSeasonal(event) {
-            this.chartTarget.classList.toggle("seasonal-hidden", !event.target.checked)
-          }
-          // in draw(), seasonal block — no showSeasonalValue guard:
-          if (this.seasonalValue.length > 1) {
-            /* ...build seasonalLine... */
-            series.append("path").attr("class", "seasonal-line") /* ...attrs... */
-          }
+          section_prices = section_prices
+            .group_by(&:variant_id)
+            .map { |_vid, rows| rows.min_by { |p| [ PackSize.kg(p.raw_unit) || Float::INFINITY, p.id ] } }
       accept:
-          Given the chart is drawn
-          When the "Mostrar sazonalidade" checkbox is toggled
-          Then the seasonal path's visibility flips via the .seasonal-hidden CSS class with NO call to draw()
-          (the price line does not re-animate)
-      verify: grep -q 'seasonal-hidden' app/assets/stylesheets/components/chart.css && grep -q 'classList.toggle("seasonal-hidden"' app/javascript/controllers/d3_line_chart_controller.js && ! grep -q 'showSeasonalValueChanged' app/javascript/controllers/d3_line_chart_controller.js && echo OK
-      constraints: keep the initial-render default (line visible when checkbox checked). Do not remove the seasonal
-          drawing code — only ungate it and class it. No JS test runner: the grep self-check is the gate.
+          Given the latest bulletin where Tommy Atkins has two pack rows
+          When /precos renders the Manga group
+          Then Tommy Atkins appears exactly once (its representative/min-pack row)
+          And no other product loses a distinct variant
+      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test test/integration/precos_page_test.rb
+      constraints: dedupe by variant only within a section's loaded rows; do not change section grouping, timing,
+          or the fair_relevant filter. Add a test asserting one Tommy Atkins row on /precos.
 
-- [x] T2.2 (hard, serial) Fix época pill clipping — redesign the /precos row grid so pills never truncate
-      touches: app/assets/stylesheets/domain/ta_justo.css, app/views/precos/index.html.erb
-      do: The 3-col grid `1fr 130px 145px` gives época a fixed 145px; "tipicamente preço normal" plus emoji
-          overflows and is clipped (screenshot). Redesign for legibility (req 4): (1) widen and left-align the
-          época column so the full pill fits — change the shared grid to give época real room and let it size to
-          content, e.g. `grid-template-columns: minmax(0,1fr) 120px minmax(150px, max-content)` and set
-          `.col-epoca { text-align: left; justify-self: start; }`. (2) Let the pill wrap gracefully instead of
-          clipping: change `.epoca-pill { white-space: nowrap }` to allow wrapping (`white-space: normal;
-          line-height: 1.3;`) and add `overflow-wrap: anywhere;`. (3) The `.col-product` cell must not eat the
-          space — keep it `minmax(0,1fr)` so it can shrink. (4) Verify the mobile breakpoint (`@media
-          max-width:768px`) still stacks correctly: there época is `grid-column: 2; text-align:right` — switch
-          that to `text-align: left` too for consistency, and let it wrap. Reason: the pill text is the whole
-          signal; clipping it destroys the feature.
+- [ ] T2.2 (trivial, serial) Link each /precos variety row to that exact variant (?variant=ID)
+      touches: app/views/precos/index.html.erb
+      do: In the multi-type branch, the per-variant `link_to product_path(product.slug)` carries no variant, so
+          clicking any variety opens the default (Palmer for Manga). Pass the variant id:
+          `product_path(product.slug, variant: price.variant.id)`. `ProductsController#show` already honors
+          `?variant=ID`. Single-product rows keep the default link.
       snippet:
-          .price-list-header, .price-row, .price-row--variant {
-            grid-template-columns: minmax(0, 1fr) 120px minmax(150px, max-content);
-          }
-          .col-epoca { text-align: left; justify-self: start; }
-          .epoca-pill { white-space: normal; overflow-wrap: anywhere; line-height: 1.3; }
+          <%= link_to product_path(product.slug, variant: price.variant.id), class: "price-row price-row--variant" do %>
       accept:
-          Given the /precos page at desktop and at ≤768px
-          When an época pill reads "tipicamente preço normal"
-          Then the full text renders inside the pill with no clipping/ellipsis on either layout
-      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test test/integration/precos_page_test.rb && grep -q 'minmax(150px, max-content)' app/assets/stylesheets/domain/ta_justo.css
-      constraints: keep the header/row/variant grids in sync (they share the template). Do not change pill colors
-          or the legend. Visual clipping is CSS-only; the integration test just asserts the page still 200s with pills.
+          Given the Manga group on /precos
+          When the "Espada" row is clicked
+          Then the detail page opens with variant=41 (Espada) selected, not the default
+      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test test/integration/precos_page_test.rb
+      constraints: only the multi-type branch link gains `variant:`. Add an assertion the variant row href
+          includes `variant=`.
 
 ---
 
-## Phase 3 — Localization & Branding (pt-BR pass, Footer/About, Console Easter Egg)
+## Phase 3 — Surface the CEASA PDF link per price day
 
-- [x] T3.1 (normal, serial) Remove the "checker" anglicism from all user-facing copy (pt-BR pass)
-      touches: app/views/products/show.html.erb, app/views/checks/show.html.erb,
-               app/views/precos/index.html.erb, app/views/pages/sobre.html.erb,
-               app/controllers/checks_controller.rb, config/routes.rb
-      do: Replace user-visible "checker" with pt-BR terms (req 7). Make these EXACT string replacements (find the
-          left literal, replace with the right literal — whole line shown so there is no ambiguity):
-
-          1. `app/views/precos/index.html.erb` (line ~34, inside the @error empty-state):
-             FIND:    `        <%= link_to "← Voltar ao checker", root_path, class: "button primary" %>`
-             REPLACE: `        <%= link_to "← Voltar ao verificador", root_path, class: "button primary" %>`
-          2. `app/views/precos/index.html.erb` (line ~116, bottom nav):
-             FIND:    `      <%= link_to "← Voltar ao checker", root_path, class: "button secondary" %>`
-             REPLACE: `      <%= link_to "← Voltar ao verificador", root_path, class: "button secondary" %>`
-          3. `app/views/pages/sobre.html.erb` (line ~73):
-             FIND:    `      <%= link_to "← Voltar ao checker", root_path, class: "button primary" %>`
-             REPLACE: `      <%= link_to "← Voltar ao verificador", root_path, class: "button primary" %>`
-          4. `app/views/products/show.html.erb` (line ~227):
-             FIND:    `      <%= link_to "Novo checker", root_path, class: "button primary" %>`
-             REPLACE: `      <%= link_to "Nova consulta", root_path, class: "button primary" %>`
-          5. `app/controllers/checks_controller.rb` (line 1 comment):
-             FIND:    `# ChecksController — The hero checker page`
-             REPLACE: `# ChecksController — Página principal do verificador`
-          6. `config/routes.rb` (line 12 trailing comment):
-             FIND:    `  root "checks#show"                                # The hero checker`
-             REPLACE: `  root "checks#show"                                # Verificador principal`
-
-          DO NOT rename CSS classes in this task (`checker-container`/`checker-form`) — that is T3.2 (it must move
-          HTML + CSS together to stay green). Reason: split so each turn is atomic and green.
+- [ ] T3.1 (trivial) Show the source PDF link on /precos and the detail raw-data section
+      touches: app/views/precos/index.html.erb, app/views/products/show.html.erb
+      do: `bulletins.source_url` holds the exact PDF. Surface it read-only.
+          (A) `/precos` header: below the "Atualizado…" subtitle add
+              `link_to "Ver boletim PDF", @latest_bulletin.source_url, target: "_blank", rel: "noopener"`.
+          (B) Detail raw-data accordion (`products/show.html.erb`): in the "Dados brutos CEASA (<date>)" summary,
+              link the date to `@latest_price.bulletin.source_url` (`target=_blank`, `rel=noopener`).
+          Reason: annotation 2 — let people open the underlying bulletin.
       accept:
-          Given the rendered /precos, /sobre and product pages
-          When their visible text is inspected
-          Then no visible string contains "checker"; the back-links read "verificador" and the button reads
-          "Nova consulta"
-      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test && ! grep -rn 'ao checker\|Novo checker' app/views
-      constraints: text/comment only; leave the `checker-container`/`checker-form` CSS class names for T3.2 so this
-          turn stays green.
+          Given /precos and a product detail page
+          Then each renders an external link to the bulletin's `source_url` (target=_blank, rel=noopener)
+      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test test/integration/precos_page_test.rb && grep -q 'source_url' app/views/precos/index.html.erb
+      constraints: view-only; no controller change (both `@latest_bulletin` and `@latest_price.bulletin` are
+          already loaded). Add an assertion the /precos page includes the source_url href.
 
-- [x] T3.2 (normal, serial) Rename checker-* CSS classes to verificador-* across HTML + CSS together
-      touches: app/views/products/show.html.erb, app/views/checks/show.html.erb,
-               app/assets/stylesheets/domain/ta_justo.css, app/assets/stylesheets/layouts/landing_page.css
-      do: Finish the anglicism removal by renaming the CSS classes `checker-container` → `verificador-container`
-          and `checker-form` → `verificador-form` in BOTH the markup that uses them (`products/show.html.erb`,
-          `checks/show.html.erb`) AND the stylesheets that define them (`domain/ta_justo.css` "Checker page"
-          block + `.checker-container`; `layouts/landing_page.css` `.checker-container`, `.checker-form`, and
-          nested selectors). This is one serial task because a class rename split across turns would leave the page
-          unstyled mid-flight. Also update the CSS comments "Checker page" → "Verificador" and "Checker form card"
-          → "Cartão do verificador". Reason: leftover English class names are the last of the anglicism pass (req 7).
+---
+
+## Phase 4 — Live product search on the checker (replaces the dropdown)
+
+- [ ] T4.1 (normal, serial) Expose core-basket products + their variant names as a search index for the checker
+      touches: app/controllers/checks_controller.rb, db/seeds/core_basket.rb
+      do: The live search must match products AND subcategories (variant/type names like "Espada", "Seco")
+          (annotation 1). Build the search data server-side once and hand it to the view.
+          Add `CoreBasket.search_index` returning, for each core product, `{slug, name, variants: [{id, name}]}`
+          (variant names come from `product.variants.order(:name)`; the products are already the checkable list).
+          In `ChecksController#show`, assign `@search_index = CoreBasket.search_index` (JSON-encodable) for the
+          client filter. Keep `@core_products` for the no-JS `<select>` fallback.
       accept:
-          Given the landing (/) and product detail pages
-          When rendered
-          Then they are styled identically to before AND `grep -rn "checker" app/assets app/views` returns nothing
-      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test && ! grep -rn 'checker' app/assets app/views
-      constraints: pure rename — every `checker-container`/`checker-form` occurrence in the four files flips in the
-          same turn. No visual change. Do not touch `checks_controller.rb`/`routes.rb` (done in T3.1).
+          Given the checker page
+          Then `@search_index` contains every core product with its variant names (e.g. Manga → [Espada, Palmer,
+               Tommy Atkins]) and each variant's id
+      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test test/controllers
+      constraints: no new model/table; reuse `CoreBasket.all_products` with `includes(:variants)`. Add a
+          controller test asserting `@search_index` includes a product with variants.
 
-- [x] T3.3 (normal) Add author attribution (name + site) to the footer and About page
-      touches: app/views/shared/_footer.html.erb, app/views/pages/sobre.html.erb
-      do: Add the author's name and website (req 2). Two exact edits:
-
-          (A) `app/views/shared/_footer.html.erb` — the footer-bottom currently reads exactly:
-              FIND (the whole div):
-              `    <div class="footer-bottom">`
-              `      © 2026 Tá Justo? — Dados do CEASA-RJ`
-              `    </div>`
-              REPLACE with:
-              `    <div class="footer-bottom">`
-              `      © 2026 Tá Justo? — Dados do CEASA-RJ ·`
-              `      Feito por <%= link_to "Luiz Gustavo Zincone Neiva", "https://gustavoneiva.dev",`
-              `                            target: "_blank", rel: "noopener noreferrer" %>`
-              `    </div>`
-
-          (B) `app/views/pages/sobre.html.erb` — the "Quem fez isso?" section's paragraph currently ends exactly:
-              FIND:
-              `        Projeto pessoal de código aberto. Sem publicidade, sem venda de dados, 100% gratuito.`
-              `        Se quiser contribuir ou reportar um problema, entre em contato.`
-              REPLACE with:
-              `        Projeto pessoal de código aberto. Sem publicidade, sem venda de dados, 100% gratuito.`
-              `        Se quiser contribuir ou reportar um problema, entre em contato.`
-              `        Feito por <%= link_to "Luiz Gustavo Zincone Neiva", "https://gustavoneiva.dev",`
-              `                              target: "_blank", rel: "noopener noreferrer" %>.`
-
-          Keep copy pt-BR. Reason: attribution on the two pages the user named (req 2).
+- [ ] T4.2 (hard, serial) Client-side live search UI on the checker, accent-insensitive, links to product or variant
+      touches: app/views/checks/show.html.erb, app/javascript/controllers/product_search_controller.js, app/javascript/controllers/index.js
+      do: Replace the `<select>` with a live search input over `@search_index` (embedded as JSON in a
+          `data-` attribute). New Stimulus controller `product_search_controller.js`:
+          - On input (debounced ~150ms), normalize the query (strip accents via
+            `.normalize("NFD").replace(/\p{Diacritic}/gu, "")`, lowercase) and filter the index matching product
+            name OR any variant name.
+          - Render a results list (≤8) as clickable items. A product-name match links to `?product=<slug>`;
+            a variant-name match links to `?product=<slug>&variant=<id>` and shows "Produto › Variante".
+          - Selecting a result sets the hidden `product` field (and optional `variant`) the existing price form
+            submits — keep the price input + "Tá justo?" button and the whole verdict flow intact.
+          - No-JS fallback: keep the existing `<select>` inside a `<noscript>` (or render it and let the
+            controller replace it on connect) so the page still works without JS.
+          Register the controller in `app/javascript/controllers/index.js`. No JS test runner exists — gate with
+          a grep self-check for the controller shape + a Rails integration test on the server-rendered markup
+          (input present, `@search_index` JSON embedded, `<noscript>` select fallback present).
       snippet:
-          Feito por <%= link_to "Luiz Gustavo Zincone Neiva", "https://gustavoneiva.dev",
-                                target: "_blank", rel: "noopener noreferrer" %>
+          // product_search_controller.js
+          static targets = ["input", "results", "product", "variant"]
+          static values = { index: Array }
+          norm(s){ return s.normalize("NFD").replace(/\p{Diacritic}/gu,"").toLowerCase() }
+          filter(){ const q=this.norm(this.inputTarget.value); /* match name|variant, render ≤8 */ }
       accept:
-          Given the footer (any page) and the /sobre page
-          When rendered
-          Then both show "Luiz Gustavo Zincone Neiva" linking to https://gustavoneiva.dev with rel="noopener"
-      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test test/integration/branding_test.rb
-      constraints: external link must carry rel="noopener noreferrer"; no layout redesign. Add branding_test asserting
-          both the footer partial and /sobre contain the name + href.
-
-- [x] T3.4 (normal) Add the cornucopia console-log easter egg
-      touches: app/javascript/application.js
-      do: Append a console banner easter egg (req 6). `app/javascript/application.js` currently reads EXACTLY these
-          four lines (plus trailing newline):
-          `// Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails`
-          `import "@hotwired/turbo-rails"`
-          `import "controllers"`
-          ``
-          `Turbo.config.drive.progressBarDelay = 200`
-          APPEND the following block VERBATIM to the end of the file (after the Turbo.config line). It prints a
-          cornucopia — "horn of plenty", a symbol of abundance, on-theme for a food-price app — then the message.
-          Copy the block exactly, including the message string "Liked what you saw? Visit my website":
-          snippet-begin (append verbatim):
-
-          // Console easter egg — cornucopia (horn of plenty), a symbol of abundance
-          console.log(`
-               .-"""-.
-             .'  🌽🍇  '.
-            /  🍎🥕🍊🍇  \\
-            \\   ~~~~~~~   /
-             '.__________.'
-              Tá Justo?
-          `)
-          console.log(
-            "%cLiked what you saw? Visit my website — https://gustavoneiva.dev",
-            "font-size:14px;color:#035925;font-weight:bold"
-          )
-          snippet-end
-      accept:
-          Given the app JS loads in a browser
-          When devtools console is open
-          Then it prints cornucopia/abundance ASCII art AND the line "Liked what you saw? Visit my website"
-      verify: grep -q 'Liked what you saw? Visit my website' app/javascript/application.js && grep -q 'cornucopia' app/javascript/application.js && echo OK
-      constraints: no new imports; keep the existing four lines untouched and only append. No JS test runner: the
-          grep self-check is the gate.
-
-- [x] T3.5 (normal) Update README to document the new features (deflated chart, filter integrity, pt-BR, branding)
-      touches: README.md
-      do: The README describes the three surfaces but not the changes this plan ships. Make these EXACT edits so a
-          reader (and future agents) know the current behavior:
-
-          (A) In the "🎯 What It Does" list, the product-detail bullet currently reads exactly:
-              FIND:
-              `3. **\`/produtos/:slug\` — Product Detail** — Price-history line chart +`
-              `   seasonality chart + verdict calculator.`
-              REPLACE:
-              `3. **\`/produtos/:slug\` — Product Detail** — Inflation-adjusted (IPCA, R$ de hoje)`
-              `   price-history line chart + seasonality overlay (toggled via CSS, no redraw) +`
-              `   verdict calculator. Chart filters (period / variant) preserve all other selected filters.`
-
-          (B) In the "🧠 Verdict Engine" section, append one bullet after the `PriceHistory` line. FIND:
-              `- **\`PriceHistory\`** + **\`SeasonalityCalculator\`** — percentile bands & trends`
-              REPLACE:
-              `- **\`PriceHistory\`** + **\`SeasonalityCalculator\`** — percentile bands & trends`
-              `- **\`ChartSeries\`** — detail-chart series; deflates to real terms (IPCA série 1737, base = latest`
-              `  published month, forward-filled) with graceful nominal fallback when the index is missing/stale`
-
-          (C) At the very end, ABOVE the final line `**Built with care in Rio de Janeiro 🇧🇷**`, insert an
-              attribution line. FIND:
-              `**Built with care in Rio de Janeiro 🇧🇷**`
-              REPLACE:
-              `Feito por [Luiz Gustavo Zincone Neiva](https://gustavoneiva.dev).`
-              ``
-              `**Built with care in Rio de Janeiro 🇧🇷**`
-
-          Reason: keep the README truthful about deflation, filter integrity, the CSS toggle, and authorship (reqs
-          1–7). English README copy is fine (it is already in English); the app UI stays pt-BR.
-      accept:
-          Given README.md
-          When read after this task
-          Then it mentions the inflation-adjusted (IPCA) chart, filter preservation, the CSS seasonality toggle,
-          the ChartSeries deflation bullet, AND credits Luiz Gustavo Zincone Neiva linking gustavoneiva.dev
-      verify: grep -q 'Inflation-adjusted (IPCA' README.md && grep -q 'gustavoneiva.dev' README.md && grep -q 'ChartSeries' README.md && echo OK
-      constraints: doc-only; do not restructure the README or touch other sections. Exact string edits above.
+          Given the checker with JS enabled
+          When the user types "espada"
+          Then a result "Manga › Espada" appears and selecting it sets product=manga & variant=41 for submission
+          And with JS disabled the `<noscript>` `<select>` still submits `product=<slug>`
+      verify: export PATH="$HOME/.asdf/shims:$PATH"; bin/rails test test/integration && grep -q 'product-search' app/views/checks/show.html.erb && grep -q 'normalize("NFD")' app/javascript/controllers/product_search_controller.js
+      constraints: no new gem/JS lib; client-side only (no /buscar endpoint in v1 — ~37 products, <150 variants
+          is a tiny payload). ponytail: if the index outgrows the inline payload, add a `/buscar.json` endpoint
+          later. Keep the price form + verdict flow unchanged. Add an integration test asserting the search input
+          + embedded index + `<noscript>` fallback render.
 
 ---
 
 ## Definition of done
-- All tasks `[x]`.
-- `bin/rubocop && bin/rails test` green on a clean checkout.
-- Seasonality checkbox hides/shows the line via CSS with no D3 redraw (T2.1 grep + no `showSeasonalValueChanged`).
-- Detail chart plots deflated (real-terms, IPCA) prices with graceful nominal fallback; legend says "R$ de hoje".
-- Switching chart period or variant preserves every other query param (check_price etc.).
-- /precos época pills render in full at desktop and ≤768px (no clipping).
-- No "checker" anglicism remains in `app/views` or `app/assets` (verificador/consulta throughout).
-- Author name + gustavoneiva.dev on footer and /sobre; console easter egg prints on load.
-- README documents the deflated (IPCA) chart, filter preservation, CSS seasonality toggle, and author attribution.
+- All tasks `[x]`; `bin/rubocop && bin/rails test` green on a clean checkout.
+- Coco (and any bare-"Unid" variant) resolves a per-unidade price on the detail page and verdict — no
+  "Nenhum preço encontrado"; existing per_kg/per_dozen/weight-derived per_unit variants unchanged.
+- Every price surface states its unit honestly; the detail page shows how R$/kg (or /unidade, /dúzia) is
+  derived from the CEASA pack weight; /precos never shows a modal number under a "/kg" label.
+- Manga (and any multi-pack variant) shows one row per variety on /precos, and clicking a variety opens that
+  exact variant.
+- /precos and the detail raw-data section link the source CEASA PDF (`bulletins.source_url`, new tab).
+- The checker `/` has a live search matching products and variant/type names, accent-insensitive, linking to
+  product or product+variant, with a working no-JS `<select>` fallback.
 - Everything **staged** for user review (not committed).
 
 ## Non-goals (explicitly OUT)
-- Re-deflating the verdict/timing services (already correct — do not touch).
-- Adding a BCB live-fetch or new index series (série 1737/188 ingestion already exists).
-- A JS test harness (three JS lines are gated by grep + Rails integration markup tests).
-- A full visual redesign of /precos beyond fixing pill clipping + column layout.
-- INPC support in the chart (IPCA only, matching the existing época tags).
+- Re-deriving per_kg for variants CEASA genuinely sells by the piece (no fabricated weights).
+- A search backend/endpoint or fuzzy-search library (client-side exact/substring match is enough in v1).
+- Changing the verdict bands, timing math, or deflation.
+- Touching the CEASA fetch/parse pipeline or `.ratchet.conf`.
 - Any real deploy / domain / infra change.
