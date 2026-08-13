@@ -50,6 +50,49 @@ class PrecosPageTest < ActionDispatch::IntegrationTest
     assert_select ".price-value", text: /R\$ 5\.00\/kg/
   end
 
+  test "eggs show per-dúzia (modal ÷ 30), not the raw box price" do
+    product = Product.create!(name: "Ovo", category: "ovo", section: 6)
+    variant = Variant.create!(
+      product: product, name: "Branco Extra", pricing_mode: "per_dozen", default_for_product: true
+    )
+    product.update!(default_variant: variant)
+
+    latest = Bulletin.where(market: "ceasa-rj").order(price_date: :desc).first
+    Price.create!(
+      bulletin: latest, variant: variant, section: 6,
+      raw_unit: "Cx 30 dz", original_unit: "dozen",
+      modal: 150.0, price_per_kg: nil
+    )
+
+    get precos_path
+    assert_response :success
+
+    # 150 / 30 = 5.00 per dúzia — never the raw R$ 150 box price.
+    assert_select ".price-value", text: /R\$ 5\.00\/dúzia/
+    assert_select ".price-value", text: /150/, count: 0
+  end
+
+  test "products not in the core basket (fair_relevant: false) still appear on /precos" do
+    product = Product.create!(
+      name: "Atemóia", category: "fruta", section: 1, fair_relevant: false
+    )
+    variant = Variant.create!(
+      product: product, name: "Comum", pricing_mode: "per_kg", default_for_product: true
+    )
+    product.update!(default_variant: variant)
+
+    latest = Bulletin.where(market: "ceasa-rj").order(price_date: :desc).first
+    Price.create!(
+      bulletin: latest, variant: variant, section: 1,
+      raw_unit: "Cx 3 kg", original_unit: "kg",
+      modal: 50.0, price_per_kg: 16.67
+    )
+
+    get precos_path
+    assert_response :success
+    assert_select ".product-name", text: "Atemóia"
+  end
+
   test "multi-pack variant collapses to one representative row on /precos" do
     product = Product.create!(name: "Manga", category: "fruta", section: 1)
     palmer = Variant.create!(

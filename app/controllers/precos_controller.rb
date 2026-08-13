@@ -19,12 +19,14 @@ class PrecosController < ApplicationController
     @sections = {}
 
     (1..6).each do |section_num|
+      # Browse page shows every priced row CEASA published today. The
+      # fair_relevant flag gates the *checker's* core basket, not this list;
+      # applying it here wrongly hid imported fruits, herbs, exotic fruits, etc.
       section_prices = @latest_bulletin.prices
                                        .where(section: section_num)
                                        .where("price_per_kg IS NOT NULL OR modal IS NOT NULL")
                                        .joins(:variant)
                                        .includes(variant: :product)
-                                       .where(products: { fair_relevant: true })
                                        .order("products.name ASC")
 
       next if section_prices.empty?

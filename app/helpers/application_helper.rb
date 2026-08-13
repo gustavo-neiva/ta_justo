@@ -56,14 +56,14 @@ module ApplicationHelper
   # /dúzia for eggs, /unidade for piece-priced variants. Never shows a modal
   # number under a "/kg" label.
   def price_with_unit(price)
-    if price.price_per_kg
+    if price.variant.pricing_mode == "per_dozen" && price.modal
+      # CEASA sells eggs by the box ("Cx 30 dz"); modal is per-box → per-dúzia = ÷30.
+      per_dozen = price.modal.to_f / FairPriceVerdict::DOZENS_PER_BOX
+      "R$ #{number_with_precision(per_dozen, precision: 2)}/dúzia"
+    elsif price.price_per_kg
       "R$ #{number_with_precision(price.price_per_kg, precision: 2)}/kg"
     elsif price.modal
-      suffix = case price.variant.pricing_mode
-      when "per_dozen" then "dúzia"
-      when "per_unit"  then "unidade"
-      else                  "kg"
-      end
+      suffix = price.variant.pricing_mode == "per_unit" ? "unidade" : "kg"
       "R$ #{number_with_precision(price.modal, precision: 2)}/#{suffix}"
     else
       "S/C"
