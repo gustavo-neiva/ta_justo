@@ -63,7 +63,7 @@ module ApplicationHelper
     elsif price.price_per_kg
       "R$ #{number_with_precision(price.price_per_kg, precision: 2)}/kg"
     elsif price.modal
-      suffix = price.variant.pricing_mode == "per_unit" ? "unidade" : "kg"
+      suffix = price.variant.pricing_mode == "per_unit" ? "un." : "kg"
       "R$ #{number_with_precision(price.modal, precision: 2)}/#{suffix}"
     else
       "S/C"

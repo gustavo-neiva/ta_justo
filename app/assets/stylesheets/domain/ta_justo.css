@@ -166,7 +166,7 @@
 .price-row,
 .price-row--variant {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px minmax(150px, max-content);
+  grid-template-columns: minmax(0, 1fr) minmax(120px, max-content) minmax(150px, max-content);
   gap: var(--space-md);
   align-items: center;
   padding: var(--space-sm) var(--space-md);
@@ -337,6 +337,68 @@
   font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--color-primary);
+}
+
+/* "Último preço" card: label left, date right on the same line */
+.stat-label--latest {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-sm);
+  text-align: left;
+}
+
+.stat-date {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* Inline "?" tooltip explaining how the price was derived */
+.info-tip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15em;
+  height: 1.15em;
+  margin-left: var(--space-xs);
+  border-radius: var(--radius-pill);
+  background: var(--color-background-tertiary);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: help;
+  vertical-align: middle;
+}
+
+.info-tip__pop {
+  position: absolute;
+  bottom: calc(100% + var(--space-xs));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: max-content;
+  max-width: 240px;
+  padding: var(--space-sm);
+  background: var(--color-text);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-fast);
+}
+
+.info-tip:hover .info-tip__pop,
+.info-tip:focus .info-tip__pop,
+.info-tip:focus-within .info-tip__pop {
+  opacity: 1;
+  visibility: visible;
 }
 
 .variant-selector {

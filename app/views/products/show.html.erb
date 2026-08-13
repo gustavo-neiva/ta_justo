@@ -16,23 +16,25 @@
     <!-- Latest Price -->
     <div class="product-header-stats">
       <div class="stat-card">
-        <div class="stat-label">Último preço</div>
+        <div class="stat-label stat-label--latest">
+          <span>Último preço</span>
+          <span class="stat-date">
+            <%= I18n.l(@price_date, format: :short) %>
+            <% if @stale %>
+              <span class="stale-badge">desatualizado</span>
+            <% end %>
+          </span>
+        </div>
         <div class="stat-value">
           <% if @stats[:latest] %>
             R$ <%= number_with_precision(@stats[:latest], precision: 2) %>/<%= @unit_label %>
+            <span class="info-tip" tabindex="0" aria-label="Como calculamos este preço">?
+              <span class="info-tip__pop"><%= price_basis_line(@variant, @latest_price) %></span>
+            </span>
           <% else %>
             S/C
           <% end %>
         </div>
-        <div class="stat-label" style="margin-top: var(--space-xs);">
-          <%= I18n.l(@price_date, format: :short) %>
-          <% if @stale %>
-            <span class="stale-badge">desatualizado</span>
-          <% end %>
-        </div>
-        <p class="stat-basis" style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-top: var(--space-xs); margin-bottom: 0;">
-          <%= price_basis_line(@variant, @latest_price) %>
-        </p>
       </div>
 
       <div class="stat-card">
