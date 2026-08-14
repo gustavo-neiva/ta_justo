@@ -74,4 +74,4 @@ end
 gem "webmock", "~> 3.26", groups: [ :development, :test ]
 
 gem "posthog-ruby", "~> 3.18"
-gem "posthog-rails", "~> 3.17"
+gem "posthog-rails", "~> 3.18"
