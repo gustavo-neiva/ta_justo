@@ -91,7 +91,7 @@ GEM
     bundler-audit (0.9.3)
       bundler (>= 1.2.0)
       thor (~> 1.0)
-    concurrent-ruby (1.3.7)
+    concurrent-ruby (1.3.8)
     connection_pool (3.0.2)
     crack (1.0.1)
       bigdecimal
@@ -207,10 +207,10 @@ GEM
     parser (3.3.11.1)
       ast (~> 2.4.1)
       racc
-    posthog-rails (3.17.1)
-      posthog-ruby (= 3.18.0)
+    posthog-rails (3.18.1)
+      posthog-ruby (= 3.22.0)
       railties (>= 5.2.0)
-    posthog-ruby (3.18.0)
+    posthog-ruby (3.22.0)
       concurrent-ruby (~> 1)
     pp (0.6.3)
       prettyprint
@@ -395,7 +395,7 @@ DEPENDENCIES
   kaminari (~> 1.2)
   nokogiri
   posthog-rails (~> 3.17)
-  posthog-ruby (~> 3.18)
+  posthog-ruby (~> 3.22)
   propshaft
   puma (>= 5.0)
   rails (~> 8.1.2)
