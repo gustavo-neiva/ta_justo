@@ -7,10 +7,10 @@ Turbo.config.drive.progressBarDelay = 200
 // Console easter egg — cornucopia (horn of plenty), a symbol of abundance
 console.log(`
      .-"""-.
-   .'  🌽🍇  '.
-  /  🍎🥕🍊🍇  \
-  \   ~~~~~~~   /
-   '.__________.'
+   .'  @@   '.
+  /  @@@@@@  \
+  \   ~~~~~~   /
+   '.________.'
     Tá Justo?
 `)
 console.log(

@@ -66,7 +66,7 @@
 
   <% if @error %>
     <div class="verdict-result" style="margin-top: var(--space-xl);">
-      <p style="color: var(--color-danger);"><strong>❌ <%= @error %></strong></p>
+      <p style="color: var(--color-danger);"><strong><%= icon("x-circle") %> <%= @error %></strong></p>
     </div>
   <% end %>
 
@@ -76,14 +76,7 @@
          data-posthog-event-name-value="price_check_completed"
          data-posthog-event-properties-value="<%= { product_slug: @product.slug, pricing_mode: @variant.pricing_mode, verdict: @result.verdict.to_s }.to_json %>">
       <div class="verdict-badge <%= @result.verdict %>">
-        <% case @result.verdict %>
-        <% when :barato %>
-          ✅ Barato
-        <% when :media %>
-          ➖ Na média
-        <% when :caro %>
-          ⚠️ Caro
-        <% end %>
+        <%= markup_icon(@result.verdict) %> <%= markup_label(@result.verdict) %>
       </div>
 
       <h3><%= @product.name %> — <%= @variant.name %></h3>
@@ -103,7 +96,7 @@
       <% if @result.respond_to?(:stale) && @result.stale %>
         <div style="margin-top: var(--space-md);">
           <span class="stale-badge">
-            ⚠️ Preço CEASA de <%= (Date.current - @result.ceasa_date).to_i %> dias atrás
+            <%= icon("exclamation-triangle") %> Preço CEASA de <%= (Date.current - @result.ceasa_date).to_i %> dias atrás
           </span>
         </div>
       <% end %>
@@ -112,7 +105,7 @@
     </div>
 
     <div class="transparency-disclaimer">
-      <strong>ℹ️ Como funciona:</strong> Comparamos seu preço com o atacado CEASA-RJ.
+      <strong><%= icon("information-circle") %> Como funciona:</strong> Comparamos seu preço com o atacado CEASA-RJ.
       A margem típica de feira (1.7–2.5×) cobre transporte, perdas e mão de obra.
       É um guia, não um preço "justo" absoluto.
     </div>

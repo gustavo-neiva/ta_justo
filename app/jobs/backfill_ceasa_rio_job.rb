@@ -18,17 +18,17 @@ class BackfillCeasaRioJob < ApplicationJob
 
       body = CeasaRio::Fetcher.new.fetch_and_validate(url)
       unless body
-        puts "  ⚠️  Failed to fetch"
+        puts "  [!] Failed to fetch"
         next
       end
 
       process_url(url, body)
     end
 
-    puts "✓ Backfill complete"
+    puts "[ok] Backfill complete"
     Rails.logger.info("Backfill complete")
   rescue Interrupt
-    puts "\n\n✗ Interrupted by user"
+    puts "\n\n[x] Interrupted by user"
     raise
   end
 
@@ -53,10 +53,10 @@ class BackfillCeasaRioJob < ApplicationJob
     # Archive FIRST, then ingest from disk — source PDF always on hand.
     path = CeasaRio::Archiver.write(body, bulletin.price_date)
     CeasaRio::Loader.new.ingest_path(path, source_url: url, market: "ceasa-rj")
-    puts "  ✓ Saved #{bulletin.price_date}"
+    puts "  [ok] Saved #{bulletin.price_date}"
     Rails.logger.info("Backfilled #{bulletin.price_date}")
   rescue => e
-    puts "  ✗ Error: #{e.message}"
+    puts "  [x] Error: #{e.message}"
     Rails.logger.error("Failed to process #{url}: #{e.message}")
   end
 end

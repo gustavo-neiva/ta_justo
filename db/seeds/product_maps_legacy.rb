@@ -260,4 +260,4 @@ legacy_map(6, "OVOS DE CODORNA", "", "ovo-codorna", "De Codorna")
 # (CoreBasket.includes_raw? sees "BATATA" in raw_product and flags it as core basket)
 legacy_map(7, "Batata", "", "pescada", "Comum")
 
-puts "✅ Legacy product maps seeded: #{ProductMap.count} total mappings"
+puts "[ok] Legacy product maps seeded: #{ProductMap.count} total mappings"

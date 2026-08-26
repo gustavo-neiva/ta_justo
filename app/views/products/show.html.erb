@@ -75,7 +75,7 @@
     <% unless @market_timing.null? %>
       <div class="timing-line">
         <span class="timing-bucket timing-bucket--<%= @market_timing.bucket %>">
-          <%= timing_emoji(@market_timing.bucket) %>
+          <%= timing_icon(@market_timing.bucket) %>
           Mercado agora: <%= timing_label(@market_timing.bucket) %>
         </span>
         <span class="timing-detail">
@@ -133,7 +133,7 @@
           <div class="verdict-axes">
             <div class="verdict-axis verdict-axis--markup">
               <div class="verdict-badge <%= @verdict.verdict %>">
-                <%= markup_emoji(@verdict.verdict) %> <%= markup_label(@verdict.verdict) %>
+                <%= markup_icon(@verdict.verdict) %> <%= markup_label(@verdict.verdict) %>
               </div>
               <div class="verdict-axis-label">margem do vendedor</div>
             </div>
@@ -142,7 +142,7 @@
             <% unless @verdict.market_timing&.null? %>
               <div class="verdict-axis verdict-axis--timing">
                 <div class="timing-badge timing-badge--<%= @verdict.market_timing.bucket %>">
-                  <%= timing_emoji(@verdict.market_timing.bucket) %> <%= timing_label(@verdict.market_timing.bucket) %>
+                  <%= timing_icon(@verdict.market_timing.bucket) %> <%= timing_label(@verdict.market_timing.bucket) %>
                 </div>
                 <div class="verdict-axis-label">momento do mercado</div>
               </div>
@@ -159,7 +159,7 @@
           <!-- Synthesis (fires only on high-signal cells) -->
           <% if @verdict.synthesis_sentence.present? %>
             <div class="verdict-synthesis">
-              💬 <%= @verdict.synthesis_sentence %>
+              <%= icon("chat-bubble-left-right") %> <%= @verdict.synthesis_sentence %>
             </div>
           <% end %>
 
@@ -173,7 +173,7 @@
       <details class="accordion-item raw-data-details" style="margin-top: var(--space-lg);">
         <summary class="accordion-summary">
           <span class="accordion-title">
-            <span class="accordion-title-text">📦 Dados brutos CEASA (<%= link_to I18n.l(@price_date, format: :short), @latest_price.bulletin.pdf_url, target: "_blank", rel: "noopener" %>)</span>
+            <span class="accordion-title-text"><%= icon("archive-box") %> Dados brutos CEASA (<%= link_to I18n.l(@price_date, format: :short), @latest_price.bulletin.pdf_url, target: "_blank", rel: "noopener" %>)</span>
           </span>
           <span class="accordion-indicator">▾</span>
         </summary>

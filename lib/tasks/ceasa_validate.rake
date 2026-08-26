@@ -9,7 +9,7 @@ namespace :ceasa do
     fixtures_root = Rails.root.join("test/fixtures/files/ceasa")
 
     unless Dir.exist?(fixtures_root)
-      puts "⚠️  No fixtures found at #{fixtures_root}"
+      puts "[!] No fixtures found at #{fixtures_root}"
       puts "   Create test/fixtures/files/ceasa/ and add sample PDFs to validate"
       exit 0
     end
@@ -17,7 +17,7 @@ namespace :ceasa do
     pdfs = Dir.glob(fixtures_root.join("**", "*.pdf"))
 
     if pdfs.empty?
-      puts "⚠️  No PDF files found in #{fixtures_path}"
+      puts "[!] No PDF files found in #{fixtures_path}"
       puts "   Add sample PDFs to validate the mapping"
       exit 0
     end
@@ -53,12 +53,12 @@ namespace :ceasa do
           end
         end
       rescue => e
-        puts "❌ Error parsing #{filename}: #{e.message}"
+        puts "[x] Error parsing #{filename}: #{e.message}"
         next
       end
     end
 
-    puts "\n📊 Validation Results:"
+    puts "\nValidation Results:"
     puts "   Total rows parsed: #{total_rows}"
     puts "   Total unmapped: #{total_unmapped}"
     puts "   Core basket unmapped: #{core_unmapped.count}"
@@ -67,20 +67,20 @@ namespace :ceasa do
 
     if tail_unmapped.any?
       puts "Long-tail pending (acceptable in v1):"
-      tail_unmapped.first(20).each { |m| puts "  ℹ️  #{m}" }
+      tail_unmapped.first(20).each { |m| puts "  - #{m}" }
       puts "  ... and #{tail_unmapped.count - 20} more" if tail_unmapped.count > 20
       puts ""
     end
 
     if core_unmapped.any?
-      puts "❌ CORE BASKET UNMAPPED (BLOCKER):"
-      core_unmapped.each { |m| puts "  ❌ #{m}" }
+      puts "[x] CORE BASKET UNMAPPED (BLOCKER):"
+      core_unmapped.each { |m| puts "  [x] #{m}" }
       puts ""
       puts "Fix these mappings in db/seeds/product_maps.rb before proceeding."
       exit 1
     end
 
-    puts "✅ Core basket 100% mapped!"
+    puts "[ok] Core basket 100% mapped!"
     puts "   (#{tail_unmapped.count} long-tail stragglers → will route to pending_matches)"
   end
 end

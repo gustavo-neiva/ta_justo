@@ -5,7 +5,7 @@
 #
 # From plan §2: Markup is the spine (always present); paid-dependent.
 class Markup
-  # ⚠️ PROVISIONAL bands — a GUESS, not yet validated against real feira data (§3.2).
+  # PROVISIONAL bands — a GUESS, not yet validated against real feira data (§3.2).
   BARATO_MAX = 1.7  # < 1.7× atacado → :barato
   MEDIA_MAX  = 2.5  # 1.7–2.5× → :media ; > 2.5× → :caro
 

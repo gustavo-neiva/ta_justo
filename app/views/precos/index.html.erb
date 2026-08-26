@@ -9,7 +9,7 @@
         Atualizado: <%= I18n.l(@price_date, format: :long) %> (<%= @weekday %>)
         <% if @stale %>
           <span class="stale-badge">
-            ⚠️ <%= (Date.current - @price_date).to_i %> dias atrás
+            <%= icon("exclamation-triangle") %> <%= (Date.current - @price_date).to_i %> dias atrás
           </span>
         <% end %>
       </p>
@@ -91,11 +91,11 @@
     <% end %>
 
     <div class="epoca-legend">
-      <span>📉 Em época</span>
+      <span><%= icon("arrow-trending-down") %> Em época</span>
       <span class="epoca-legend-sep">·</span>
-      <span>📊 Preço normal</span>
+      <span><%= icon("chart-bar") %> Preço normal</span>
       <span class="epoca-legend-sep">·</span>
-      <span>📈 Fora de época</span>
+      <span><%= icon("arrow-trending-up") %> Fora de época</span>
       <span class="epoca-legend-info">“Em época” = fase do ano em que o produto costuma ficar mais barato; “fora de época”, mais caro. Calculado sobre o histórico de preços, em reais de hoje (IPCA).</span>
     </div>
 

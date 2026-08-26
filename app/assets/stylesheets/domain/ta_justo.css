@@ -83,6 +83,14 @@
   background: color-mix(in srgb, var(--color-danger) 10%, transparent);
 }
 
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  flex-shrink: 0;
+}
+
 .verdict-badge {
   display: inline-block;
   padding: var(--space-sm) var(--space-md);

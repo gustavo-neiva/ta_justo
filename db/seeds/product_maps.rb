@@ -283,4 +283,4 @@ end
 # flags it as a blocker; map it to Pescada Comum as the closest generic fish.
 map_ceasa(7, "BATATA", "", "pescada", "Comum")
 
-puts "✅ Product maps seeded: #{ProductMap.count} mappings"
+puts "[ok] Product maps seeded: #{ProductMap.count} mappings"

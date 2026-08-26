@@ -120,4 +120,4 @@ module CoreBasket
   end
 end
 
-puts "✅ Core basket defined: #{CoreBasket::SLUGS.count} products"
+puts "[ok] Core basket defined: #{CoreBasket::SLUGS.count} products"

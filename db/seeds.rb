@@ -3,7 +3,7 @@
 #
 # All seeds use find_or_create_by! on natural keys → safe to re-run
 
-puts "🌱 Seeding Tá Justo database..."
+puts "Seeding Tá Justo database..."
 
 # 1. Core Basket module (loads constants)
 load Rails.root.join('db/seeds/core_basket.rb')
@@ -20,7 +20,7 @@ load Rails.root.join('db/seeds/product_maps_legacy.rb')
 # 4. Price Indices (IPCA + INPC full history from BCB SGS API)
 load Rails.root.join('db/seeds/price_indices.rb')
 
-puts "\n✅ Seeding complete!"
+puts "\n[ok] Seeding complete!"
 puts "   Products: #{Product.count}"
 puts "   Variants: #{Variant.count}"
 puts "   ProductMaps: #{ProductMap.count}"

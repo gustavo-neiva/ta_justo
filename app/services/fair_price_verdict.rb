@@ -1,5 +1,5 @@
 class FairPriceVerdict
-  # ⚠️ Bands live on Markup VO (single source of truth). Forwarded here for
+  # Bands live on Markup VO (single source of truth). Forwarded here for
   # the explanation strings and for callers that reference them via this class.
   BARATO_MAX  = Markup::BARATO_MAX
   MEDIA_MAX   = Markup::MEDIA_MAX

@@ -877,4 +877,4 @@ fish_names.each do |fish_name|
   product.update!(default_variant: variant)
 end
 
-puts "✅ Products and variants seeded: #{Product.count} products, #{Variant.count} variants"
+puts "[ok] Products and variants seeded: #{Product.count} products, #{Variant.count} variants"
