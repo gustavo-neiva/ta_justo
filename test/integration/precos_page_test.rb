@@ -72,6 +72,29 @@ class PrecosPageTest < ActionDispatch::IntegrationTest
     assert_select ".price-value", text: /150/, count: 0
   end
 
+  test "variants whose only rows have a blank UNIDADE never 500 the page" do
+    # Prod regression (2026-08-13): CEASA publishes Abacate with prices but a
+    # blank UNIDADE → raw_unit nil, price_per_kg nil → pick_representative
+    # returns nil → the page used to raise NoMethodError (nil.variant).
+    product = Product.create!(name: "Abacate", category: "fruta", section: 1)
+    variant = Variant.create!(
+      product: product, name: "Comum", pricing_mode: "per_unit", default_for_product: true
+    )
+    product.update!(default_variant: variant)
+
+    latest = Bulletin.where(market: "ceasa-rj").order(price_date: :desc).first
+    Price.create!(
+      bulletin: latest, variant: variant, section: 1,
+      raw_unit: nil, original_unit: "kg",
+      modal: 60.0, price_per_kg: nil
+    )
+
+    get precos_path
+    assert_response :success
+    # No usable price basis → the variant is not listed, and nothing crashes.
+    assert_no_match(/Abacate/, response.body)
+  end
+
   test "products not in the core basket (fair_relevant: false) still appear on /precos" do
     product = Product.create!(
       name: "Atemóia", category: "fruta", section: 1, fair_relevant: false

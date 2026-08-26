@@ -47,6 +47,12 @@ app host. The host only ingests from already-fetched PDFs (disk-only, idempotent
    `Boletim n°` to route to `Parser::Legacy`. 268 legacy bulletins already ingested.
    **Column-width caveat:** `pdftotext -layout` compresses narrow two-word names
    (`"Red delicious"`→`"Reddelicious"`); both forms seeded, lookup is exact-match.
+   **Modern v2 (since 2026-08-13):** header says `UNIDADE EMBALAGEM`, and CEASA
+   publishes some rows with a **blank UNIDADE but prices** (Abacate/Comum). Parser
+   stores these honestly (`raw_unit: nil`, `price_per_kg: nil`, modal kept) — they are
+   source truth, not parse failures. Consequence: `pick_representative` returns nil
+   for such variants; every caller must `.compact` (see `/precos` regression
+   2026-08-26). Fixture: `test/fixtures/files/ceasa/modern/2026-08-26.pdf`.
 5. **Data starts 2022** (year tabs 2022–2026); no pre-2022 published. 2022-01 hard floor.
 6. **Multi-packaging is real.** Dedup key is `(variant, bulletin, raw_unit)`, NOT
    `(variant, bulletin)` — same variant recurs with different pack sizes. Don't "fix".

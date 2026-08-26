@@ -19,7 +19,8 @@ class PrecosController < ApplicationController
     @sections = {}
 
     (1..6).each do |section_num|
-      # Browse page shows every priced row CEASA published today. The
+      begin
+        # Browse page shows every priced row CEASA published today. The
       # fair_relevant flag gates the *checker's* core basket, not this list;
       # applying it here wrongly hid imported fruits, herbs, exotic fruits, etc.
       section_prices = @latest_bulletin.prices
@@ -33,10 +34,13 @@ class PrecosController < ApplicationController
 
       # Collapse multi-pack variants to one representative row (same rule as
       # Variant#representative_price) so a variant like Manga/Tommy Atkins
-      # does not render twice on /precos.
+      # does not render twice on /precos. CEASA also publishes rows with a
+      # blank UNIDADE (Abacate since 2026-08-13): those variants have no
+      # representative row — drop them, never crash.
       section_prices = section_prices.to_a
                                      .group_by(&:variant)
                                      .map { |variant, rows| variant.pick_representative(rows) }
+                                     .compact
 
       # Group by product so repeating names are collapsed
       products_with_prices = section_prices.group_by { |p| p.variant.product }
@@ -60,6 +64,11 @@ class PrecosController < ApplicationController
         products: products_with_prices,
         timing: timing_by_variant
       }
+      rescue => e
+        # This page must never 500: a bad section degrades, the rest still renders.
+        Rails.logger.error("[precos] section #{section_num} skipped: #{e.class}: #{e.message}")
+        next
+      end
     end
   end
 

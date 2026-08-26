@@ -2,6 +2,7 @@ require "test_helper"
 
 class CeasaRio::ParserTest < ActiveSupport::TestCase
   MODERN_FIXTURE = Rails.root.join("test/fixtures/files/ceasa/modern/2026-06-19.pdf").to_s
+  MODERN_2026_08 = Rails.root.join("test/fixtures/files/ceasa/modern/2026-08-26.pdf").to_s
   LEGACY_JAN22   = Rails.root.join("test/fixtures/files/ceasa/legacy/2022-01-25.pdf").to_s
   LEGACY_DEC22   = Rails.root.join("test/fixtures/files/ceasa/legacy/2022-12-30.pdf").to_s
   LEGACY_JAN23   = Rails.root.join("test/fixtures/files/ceasa/legacy/2023-01-02.pdf").to_s
@@ -32,6 +33,32 @@ class CeasaRio::ParserTest < ActiveSupport::TestCase
     assert_equal 6, row.section
     assert_includes row.raw_unit, "dz"
     assert_nil row.price_per_kg
+  end
+
+  # ── Modern format v2 (2026-08-13 cutover: UNIDADE EMBALAGEM header) ──────────
+
+  test "modern v2: parses date and weekday" do
+    b = parse(MODERN_2026_08)
+    assert_equal Date.new(2026, 8, 26), b.price_date
+    assert_equal "quarta-feira", b.weekday
+  end
+
+  test "modern v2: rows with a blank UNIDADE column are kept with nil unit" do
+    # CEASA publishes Abacate with prices but no unit since 2026-08-13.
+    # The row must survive parsing (modal kept, unit honestly nil), not crash
+    # and not be silently dropped.
+    row = parse(MODERN_2026_08).rows.find { |r| r.raw_product == "ABACATE" }
+    assert row, "Expected an ABACATE row"
+    assert_nil row.raw_unit
+    assert_in_delta 60.0, row.modal, 0.01
+    assert_nil row.price_per_kg
+  end
+
+  test "modern v2: regular rows still parse their unit" do
+    row = parse(MODERN_2026_08).rows.find { |r| r.raw_product == "AMEIXA" && r.raw_tipo == "NACIONAL" }
+    assert row
+    assert_equal "Cx 5 kg", row.raw_unit
+    assert row.price_per_kg
   end
 
   # ── Phase L2 ─────────────────────────────────────────────────────────────────
