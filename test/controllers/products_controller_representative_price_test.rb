@@ -32,7 +32,7 @@ class ProductsControllerRepresentativePriceTest < ActionDispatch::IntegrationTes
     # The retail pack price (13.0), NOT the wholesale one (6.11).
     assert_select ".stat-value", text: /13\.00/
     assert_select ".stat-value", text: /6\.11/, count: 0
-    assert_select ".stat-basis", text: /÷ 5 kg/
+    assert_select ".info-tip__pop", text: /÷ 5 kg/
   end
 
   test "direct-unit variant shows the modal unit price instead of an error" do
@@ -52,6 +52,6 @@ class ProductsControllerRepresentativePriceTest < ActionDispatch::IntegrationTes
     assert_response :success
     assert_select ".alert", text: /Nenhum preço encontrado/, count: 0
     assert_select ".stat-value", text: /3\.30\/unidade/
-    assert_select ".stat-basis", text: /\/unidade.*preço CEASA por peça/
+    assert_select ".info-tip__pop", text: /\/unidade.*preço CEASA por peça/
   end
 end
