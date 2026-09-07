@@ -27,6 +27,10 @@ Rails.application.configure do
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   config.assume_ssl = true
 
+  # Behind Traefik; X-Forwarded-For is proxy-set. Scanners send bogus Client-IP
+  # headers that only trip the spoof check (500 noise) without granting anything.
+  config.action_dispatch.ip_spoofing_check = false
+
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
 
