@@ -39,3 +39,4 @@ pin "d3-zoom" # @3.0.0
 pin "delaunator" # @5.1.0
 pin "internmap" # @2.0.3
 pin "robust-predicates" # @3.0.3
+pin_all_from "app/javascript/lib", under: "lib"

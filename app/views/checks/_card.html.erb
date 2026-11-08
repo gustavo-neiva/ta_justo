@@ -1,0 +1,82 @@
+<%# One item: today's CEASA reference, every variety, and the math behind it. %>
+<% head = ref[:headline] %>
+<section id="item-<%= item.id %>" class="item-card" data-checker-target="card" data-item="<%= item.id %>" <%= "hidden" unless open %>>
+  <header class="item-card-head">
+    <%= produce_icon(item, size: :lg) %>
+    <div>
+      <h2><%= item.name %></h2>
+      <% if item.scientific %><p class="item-sci"><%= item.scientific %></p><% end %>
+    </div>
+    <%= link_to "×", root_path, class: "item-close", aria: { label: "Fechar" }, data: { action: "checker#close" } %>
+  </header>
+
+  <% if item.closest_note %>
+    <p class="item-closest" data-closest-note hidden><%= icon("information-circle") %> <%= item.closest_note %></p>
+  <% end %>
+
+  <% if head.nil? %>
+    <p class="item-none">
+      Sem cotação CEASA recente para <%= item.name.downcase %>.
+      <% last = ref[:dead].filter_map { |r| r[:date] }.max %>
+      <%= "Última: #{last.strftime("%d/%m/%Y")}." if last %>
+    </p>
+  <% elsif !ref[:varies] %>
+    <div class="item-headline">
+      <p class="item-ceasa">CEASA <%= short_date(head[:date]) %>: <strong><%= brl(head[:value]) %></strong> por <%= head[:unit] %></p>
+      <p class="item-fair">Justo na feira: até <strong><%= brl(head[:media_max]) %></strong>/<%= head[:unit] %></p>
+      <p class="item-bands"><%= render "bands", row: head %></p>
+      <% if head[:stale] %><p><span class="stale-badge"><%= icon("exclamation-triangle") %> Cotação de <%= (Date.current - head[:date]).to_i %> dias atrás</span></p><% end %>
+      <%= render "price_form", item: item, row: head %>
+    </div>
+  <% else %>
+    <p class="item-varies"><%= icon("exclamation-triangle") %> O preço muda com a variedade. Toque na que você está vendo:</p>
+  <% end %>
+
+  <% if ref[:rows].any? %>
+    <details class="item-breakdown" <%= "open" if ref[:varies] %>>
+      <summary><%= ref[:varies] ? "Variedades" : "Ver variedades e contas" %> (<%= ref[:rows].size %>)</summary>
+      <ul class="variety-list">
+        <% ref[:rows].each do |row| %>
+          <li>
+            <details class="variety" data-variety="<%= row[:index] %>">
+              <summary>
+                <span class="variety-name"><%= row[:label] %><% if row[:hint] %> <small><%= row[:hint] %></small><% end %></span>
+                <span class="variety-price"><%= brl(row[:value]) %>/<%= row[:unit] %>
+                  <% if row[:outlier] %><em class="badge-odd">valor atípico</em><% else %><small>justo até <%= brl(row[:media_max]) %></small><% end %>
+                </span>
+              </summary>
+              <div class="variety-math">
+                <p>Boletim CEASA <%= row[:date].strftime("%d/%m/%Y") %><%= " (#{(Date.current - row[:date]).to_i} dias atrás)" if row[:stale] %>:
+                  <%= row[:raw_unit] || "sem embalagem informada" %> ·
+                  mín <%= row[:min] ? brl(row[:min]) : "—" %> · <strong>modal <%= brl(row[:modal]) %></strong> · máx <%= row[:max] ? brl(row[:max]) : "—" %></p>
+                <p>→ <%= row[:basis] %> = <strong><%= brl(row[:value]) %>/<%= row[:unit] %></strong></p>
+                <% if row[:other_packs].any? %>
+                  <p>Outras embalagens no mesmo boletim (usamos a menor, mais perto do varejo):
+                    <%= safe_join(row[:other_packs].map { |p| "#{p[:raw_unit]} → #{brl(p[:value])}/#{row[:unit]}" }, " · ") %></p>
+                <% end %>
+                <p><%= render "bands", row: row %></p>
+                <% if row[:outlier] %><p class="badge-odd-note">Muito diferente das outras variedades — pode ser erro de digitação no boletim. Confira a conta acima.</p><% end %>
+                <% if row[:note] %><p class="badge-odd-note"><%= row[:note] %></p><% end %>
+                <%= render "price_form", item: item, row: row %>
+              </div>
+            </details>
+          </li>
+        <% end %>
+      </ul>
+    </details>
+  <% end %>
+
+  <% if ref[:dead].any? && head %>
+    <p class="item-dead">Sem cotação recente: <%= ref[:dead].map { |r| r[:label] }.join(", ") %>.</p>
+  <% end %>
+
+  <% confuse = item.confuse.filter_map { |id| CheckerCatalog.find(id) } %>
+  <% if confuse.any? %>
+    <p class="item-confuse">Não confunda com:
+      <%= safe_join(confuse.map { |c| link_to(c.name, root_path(item: c.id), data: { item: c.id, action: "checker#pick" }) }, ", ") %></p>
+  <% end %>
+
+  <% if head %>
+    <p class="item-history"><%= link_to "Histórico de preços →", product_path(head[:product]), class: "link" %></p>
+  <% end %>
+</section>

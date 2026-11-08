@@ -1,71 +1,23 @@
-<% content_for :page_class, "landing-page" %>
+<% content_for :page_class, "checker-page" %>
 <% content_for :title, "Tá Justo? — O índice de preços da CEASA-RJ" %>
+<% search_index = CheckerCatalog.search_index(@items.to_h { |i| [ i.id, item_price_summary(@refs[i.id]) ] }) %>
 
-<div class="verificador-container">
-  <div class="page-header">
-    <h1>Tá Justo?</h1>
-    <p class="subtitle">O primeiro índice de preços para o consumidor carioca</p>
-  </div>
-
-  <% selected_label = if params[:product].present?
-       product_entry = @search_index.find { |p| p[:slug] == params[:product] }
-       if product_entry && params[:variant].present?
-         variant_entry = product_entry[:variants].find { |v| v[:id].to_s == params[:variant] }
-         variant_entry ? "#{product_entry[:name]} › #{variant_entry[:name]}" : product_entry[:name]
-       else
-         product_entry&.dig(:name)
-       end
-     end %>
-
-  <%= form_with url: root_path, method: :get, class: "verificador-form", data: { turbo_frame: "_top", controller: "product-search", "product-search-index-value": @search_index.to_json } do |f| %>
-    <div class="form-group product-search">
-      <label for="product-search-input">Escolha o produto</label>
-      <input type="search"
-             id="product-search-input"
-             class="form-control"
-             placeholder="Digite o nome do produto ou variedade (ex: manga espada)"
-             autocomplete="off"
-             value="<%= selected_label %>"
-             data-product-search-target="input"
-             data-action="input->product-search#filter">
-      <input type="hidden" name="product" value="<%= params[:product] %>" data-product-search-target="product">
-      <input type="hidden" name="variant" value="<%= params[:variant] %>" data-product-search-target="variant">
-      <div class="product-search-results" data-product-search-target="results" hidden></div>
-
-      <noscript>
-        <select name="product" id="product" class="form-control" required>
-          <option value="">Selecione...</option>
-          <% @core_products.each do |p| %>
-            <option value="<%= p[:slug] %>" <%= 'selected' if params[:product] == p[:slug] %>>
-              <%= p[:name] %>
-            </option>
-          <% end %>
-        </select>
-      </noscript>
-    </div>
-
-    <div class="form-group">
-      <% label_unit = @unit_label || "kg" %>
-      <label for="price">Preço que você pagou (R$ por <%= label_unit %>)</label>
-      <input 
-        type="number" 
-        step="0.01" 
-        min="0.01"
-        name="price" 
-        id="price" 
-        class="form-control" 
-        placeholder="Ex: 8.50"
-        value="<%= params[:price] %>"
-        required>
-    </div>
-
-    <button type="submit" class="button primary full-width">
-      Tá justo?
-    </button>
-  <% end %>
+<%= produce_icon_sprite(@items) %>
+<div class="checker" data-controller="checker" data-checker-index-value="<%= search_index.to_json %>">
+  <section class="checker-search">
+    <h1 class="checker-title">Quanto é justo pagar? <span>Referência: atacado da CEASA-RJ</span></h1>
+    <label for="checker-q" class="visually-hidden">O que você está vendo?</label>
+    <input type="search" id="checker-q" class="checker-input"
+           placeholder="O que você está vendo? ex: aipim, banana prata"
+           autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="search"
+           <%= "autofocus" unless @open_item || @result || @error %>
+           data-checker-target="input"
+           data-action="input->checker#search focus->checker#lift keydown.enter->checker#pickFirst">
+    <ol class="checker-results" data-checker-target="results" hidden aria-live="polite"></ol>
+  </section>
 
   <% if @error %>
-    <div class="verdict-result" style="margin-top: var(--space-xl);">
+    <div class="verdict-result">
       <p style="color: var(--color-danger);"><strong><%= icon("x-circle") %> <%= @error %></strong></p>
     </div>
   <% end %>
@@ -74,46 +26,54 @@
     <div class="verdict-result <%= @result.verdict %>"
          data-controller="posthog-event"
          data-posthog-event-name-value="price_check_completed"
-         data-posthog-event-properties-value="<%= { product_slug: @product.slug, pricing_mode: @variant.pricing_mode, verdict: @result.verdict.to_s }.to_json %>">
+         data-posthog-event-properties-value="<%= { product_slug: @product.slug, item: @open_item&.id, pricing_mode: @variant.pricing_mode, verdict: @result.verdict.to_s }.to_json %>">
       <div class="verdict-badge <%= @result.verdict %>">
         <%= markup_icon(@result.verdict) %> <%= markup_label(@result.verdict) %>
       </div>
-
-      <h3><%= @product.name %> — <%= @variant.name %></h3>
-
-      <div class="verdict-price-row" style="margin-bottom: var(--space-sm);">
-        <span>Você pagou: <strong>R$ <%= "%.2f" % @result.paid_comparable %>/<%= @result.unit_label %></strong></span>
-        &nbsp;·&nbsp;
-        <span>CEASA: <strong>R$ <%= "%.2f" % @result.ceasa_comparable %>/<%= @result.unit_label %></strong></span>
-        &nbsp;·&nbsp;
+      <h3><%= @open_item&.name || @product.name %> — <%= @open_item&.members&.find { |m| m.variant == @variant.name }&.label || @variant.name %></h3>
+      <div class="verdict-price-row">
+        <span>Você pagou: <strong><%= brl(@result.paid_comparable) %>/<%= @result.unit_label %></strong></span>
+        <span>CEASA: <strong><%= brl(@result.ceasa_comparable) %>/<%= @result.unit_label %></strong></span>
         <span>Razão: <strong><%= "%.1f" % @result.ratio %>×</strong></span>
       </div>
-
-      <div class="verdict-explanation">
-        <%= @result.explanation %>
-      </div>
-
-      <% if @result.respond_to?(:stale) && @result.stale %>
-        <div style="margin-top: var(--space-md);">
-          <span class="stale-badge">
-            <%= icon("exclamation-triangle") %> Preço CEASA de <%= (Date.current - @result.ceasa_date).to_i %> dias atrás
-          </span>
-        </div>
+      <div class="verdict-explanation"><%= @result.explanation %></div>
+      <% if @result.stale %>
+        <p><span class="stale-badge"><%= icon("exclamation-triangle") %> Preço CEASA de <%= (Date.current - @result.ceasa_date).to_i %> dias atrás</span></p>
       <% end %>
-
-      <%= link_to "Ver histórico de #{@product.name.downcase} →", product_path(@product.slug), class: "button secondary", style: "margin-top: var(--space-lg);" %>
-    </div>
-
-    <div class="transparency-disclaimer">
-      <strong><%= icon("information-circle") %> Como funciona:</strong> Comparamos seu preço com o atacado CEASA-RJ.
-      A margem típica de feira (1.7–2.5×) cobre transporte, perdas e mão de obra.
-      É um guia, não um preço "justo" absoluto.
     </div>
   <% end %>
 
-  <div style="margin-top: var(--space-xl); text-align: center; color: var(--color-text-secondary);">
-    <p>
-      Ou <%= link_to "navegue os preços de hoje", precos_path, class: "link" %> →
-    </p>
+  <div class="checker-cards">
+    <% @items.each do |item| %>
+      <%= render "card", item: item, ref: @refs[item.id], open: @open_item == item %>
+    <% end %>
   </div>
+
+  <section class="checker-recent" data-checker-target="recent" hidden>
+    <h2>Recentes</h2>
+    <div class="tile-row" data-checker-target="recentList"></div>
+  </section>
+
+  <section class="checker-grid" data-checker-target="grid" aria-label="Escolha pelo que você vê">
+    <% CheckerCatalog.by_group.each do |group, items| %>
+      <% top, rest = items.partition(&:top) %>
+      <h2><%= CheckerCatalog::GROUPS[group] %></h2>
+      <div class="tile-grid">
+        <% top.each do |item| %><%= render "tile", item: item %><% end %>
+      </div>
+      <% if rest.any? %>
+        <details class="tile-more">
+          <summary>Mais <%= CheckerCatalog::GROUPS[group].downcase %> (<%= rest.size %>)</summary>
+          <div class="tile-grid">
+            <% rest.each do |item| %><%= render "tile", item: item %><% end %>
+          </div>
+        </details>
+      <% end %>
+    <% end %>
+  </section>
+
+  <p class="checker-footnote">
+    Referência: atacado da CEASA-RJ. Feira costuma cobrar de 1,7× a 2,5× o atacado (transporte, perdas, mão de obra).
+    É um guia, não um preço absoluto. <%= link_to "Todos os preços de hoje →", precos_path, class: "link" %>
+  </p>
 </div>

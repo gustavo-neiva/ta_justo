@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_21_061533) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_120000) do
   create_table "bulletins", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "market", default: "ceasa-rj", null: false

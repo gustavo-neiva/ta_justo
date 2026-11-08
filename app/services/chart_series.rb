@@ -2,7 +2,6 @@
 # Returns an array of { date: "YYYY-MM-DD", price: <Float, in the variant's pricing unit> }.
 class ChartSeries
   PERIOD_DAYS = { "90" => 90, "365" => 365 }.freeze
-  DOZENS_PER_BOX = 30
 
   def initialize(variant, period: "365", deflated: false)
     @variant  = variant
@@ -34,13 +33,8 @@ class ChartSeries
   end
 
   def point_for(price)
-    value =
-      case @variant.pricing_mode
-      when "per_dozen" then price.modal.to_f / DOZENS_PER_BOX
-      when "per_unit"  then price.price_per_kg.to_f * @variant.avg_weight_kg.to_f
-      else                  price.price_per_kg.to_f
-      end
-    return nil unless value.positive?
+    value = @variant.comparable(price)
+    return nil unless value&.positive?
 
     value *= deflation_factor(price.bulletin.price_date) if @deflated
 

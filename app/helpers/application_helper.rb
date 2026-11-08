@@ -20,6 +20,8 @@ module ApplicationHelper
                 fill: "currentColor", class: "icon", "aria-hidden": "true")
   end
 
+  def brl(value) = Variant.brl(value)
+
   # ── Markup axis helpers ──────────────────────────────────────────────────────
 
   def markup_icon(bucket)
@@ -92,22 +94,8 @@ module ApplicationHelper
         price.modal.to_f / 30, price.modal.to_f
       ]
     when "per_unit"
-      if price.original_unit == "unit"
-        line = "R$ %.2f/unidade (preço CEASA por peça)" % price.modal.to_f
-        if variant.avg_weight_kg&.positive?
-          line += " ≈ R$ %.2f/kg (peça ~%dg estimada)" % [
-            price.modal.to_f / variant.avg_weight_kg.to_f,
-            (variant.avg_weight_kg.to_f * 1000).round
-          ]
-        end
-        line
-      else
-        "R$ %.2f/unidade ≈ R$ %.2f/kg × ~%dg (estimado)" % [
-          price.price_per_kg.to_f * variant.avg_weight_kg.to_f,
-          price.price_per_kg.to_f,
-          (variant.avg_weight_kg.to_f * 1000).round
-        ]
-      end
+      value, basis = variant.comparable_with_basis(price)
+      value ? "R$ %.2f/unidade (%s)" % [ value, basis ] : "S/C"
     else # per_kg
       kg = PackSize.kg(price.raw_unit)
       if kg

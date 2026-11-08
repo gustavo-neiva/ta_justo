@@ -164,4 +164,13 @@ class CeasaRio::ParserTest < ActiveSupport::TestCase
   def parse(path)
     CeasaRio::Parser.new(path).parse
   end
+
+  test "a printed 0,00 price is stored as no price, never zero" do
+    row = CeasaRio::Parser::Row.new(raw_product: "ENDÍVIA", raw_unit: "0,5kg", min: 25.0, modal: 0.0, max: 40.0, price_per_kg: 0.0)
+    CeasaRio::Parser.drop_zero_prices!(row)
+    assert_nil row.modal
+    assert_nil row.price_per_kg
+    assert_equal 25.0, row.min
+    assert_equal 40.0, row.max
+  end
 end

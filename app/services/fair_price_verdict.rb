@@ -65,7 +65,7 @@ class FairPriceVerdict
     ceasa_date = latest.bulletin.price_date
     stale      = stale?(ceasa_date)
     ratio      = @paid_amount / ceasa
-    pct        = percentile_12m(ceasa, :per_kg)
+    pct        = percentile_12m(ceasa)
     markup     = Markup.new(ratio: ratio)
     timing     = compute_market_timing
     synthesis  = synthesize(markup.bucket, timing)
@@ -93,7 +93,7 @@ class FairPriceVerdict
     ceasa_date      = latest.bulletin.price_date
     stale           = stale?(ceasa_date)
     ratio           = @paid_amount / ceasa_per_dozen
-    pct             = percentile_12m(ceasa_per_dozen, :per_dozen)
+    pct             = percentile_12m(ceasa_per_dozen)
     markup          = Markup.new(ratio: ratio)
     timing          = compute_market_timing
     synthesis       = synthesize(markup.bucket, timing)
@@ -117,17 +117,13 @@ class FairPriceVerdict
     latest = representative_latest
     raise "Sem preço CEASA para #{@variant.name}" unless latest
 
-    if latest.original_unit == "unit"
-      ceasa_per_unit = latest.modal.to_f
-    else
-      raise "Variante #{@variant.name} sem avg_weight_kg — não pode gerar veredicto" unless @variant.avg_weight_kg&.positive?
+    ceasa_per_unit, @unit_basis = @variant.comparable_with_basis(latest)
+    raise "Variante #{@variant.name} sem avg_weight_kg — não pode gerar veredicto" unless ceasa_per_unit
 
-      ceasa_per_unit = latest.price_per_kg.to_f * @variant.avg_weight_kg.to_f
-    end
     ceasa_date     = latest.bulletin.price_date
     stale          = stale?(ceasa_date)
     ratio          = @paid_amount / ceasa_per_unit
-    pct            = percentile_12m(ceasa_per_unit, :per_unit)
+    pct            = percentile_12m(ceasa_per_unit)
     markup         = Markup.new(ratio: ratio)
     timing         = compute_market_timing
     synthesis      = synthesize(markup.bucket, timing)
@@ -150,26 +146,15 @@ class FairPriceVerdict
   # Percentile of `current` within the trailing-12m representative series.
   # Ranks the CEASA series — strictly paid-independent (Plan §3.1 bug fix).
   # Nominal here; the deflated MarketTiming percentile is a separate axis (Phase 3).
-  def percentile_12m(current, mode)
-    series = comparable_series(mode)
+  def percentile_12m(current)
+    series = comparable_series
     return nil if series.size < 10
     below = series.count { |p| p < current }
     (below.to_f / series.size * 100).round
   end
 
-  def comparable_series(mode)
-    @variant.representative_series(months: 12).map do |price|
-      case mode
-      when :per_kg    then price.price_per_kg.to_f
-      when :per_dozen then price.modal.to_f / DOZENS_PER_BOX
-      when :per_unit
-        if price.original_unit == "unit"
-          price.modal.to_f
-        else
-          price.price_per_kg.to_f * @variant.avg_weight_kg.to_f
-        end
-      end
-    end
+  def comparable_series
+    @variant.representative_series(months: 12).filter_map { |price| @variant.comparable(price) }
   end
 
   def representative_latest
@@ -207,9 +192,8 @@ class FairPriceVerdict
   end
 
   def explanation_per_unit(ratio, ceasa_unit, pct)
-    weight_g = (@variant.avg_weight_kg.to_f * 1000).round
     "Você paga R$ #{"%.2f" % @paid_amount}/unidade = #{"%.1f" % ratio}× o atacado CEASA " \
-    "(R$ #{"%.2f" % ceasa_unit}/unidade, ~#{weight_g}g estimado). " \
+    "(R$ #{"%.2f" % ceasa_unit}/unidade: #{@unit_basis}). " \
     "Margem típica de feira: #{BARATO_MAX}–#{MEDIA_MAX}×." \
     "#{" Hoje está no #{pct}º percentil dos últimos 12 meses." if pct}"
   end

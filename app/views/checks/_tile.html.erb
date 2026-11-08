@@ -1,0 +1,4 @@
+<a href="<%= root_path(item: item.id) %>" class="tile" data-item="<%= item.id %>" data-action="checker#pick">
+  <%= produce_icon(item) %>
+  <span class="tile-name"><%= item.name.sub(/\s*\(.*\)\z/, "") %></span>
+</a>

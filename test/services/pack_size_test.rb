@@ -33,4 +33,25 @@ class PackSizeTest < ActiveSupport::TestCase
     assert_nil PackSize.kg(nil)
     assert_nil PackSize.kg("")
   end
+
+  # ── Piece counts (per_unit conversions use modal ÷ count) ─────────────────
+  {
+    "Preg 16 kg/8 unid" => 8, "Preg 2 kg/16 unid" => 16, "Preg 8 kg / 8 cab" => 8,
+    "Preg 20 kg/8 cab" => 8, "Ama 0,5 kg / 10 mol" => 10, "Ama 0,25 kg / 5 unid" => 5
+  }.each do |raw, expected|
+    test "counts #{expected} pieces in #{raw.inspect}" do
+      assert_equal expected, PackSize.count(raw)
+    end
+  end
+
+  test "no count when the pack text has none" do
+    [ "Cx 20 kg", "Preg 6 kg", "Unid", "Unid 2,0 kg", nil, "Cx 1,2 kg / 4 cambucas" ].each { |raw| assert_nil PackSize.count(raw), raw.inspect }
+  end
+
+  test "single_unit? only for packs that start with Unid" do
+    assert PackSize.single_unit?("Unid")
+    assert PackSize.single_unit?("Unid 2,0 kg")
+    refute PackSize.single_unit?("Preg 16 kg/8 unid")
+    refute PackSize.single_unit?(nil)
+  end
 end

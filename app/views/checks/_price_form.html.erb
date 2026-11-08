@@ -1,0 +1,11 @@
+<%= form_with url: root_path, method: :get, class: "price-form", data: { turbo_frame: "_top" } do %>
+  <input type="hidden" name="item" value="<%= item.id %>">
+  <input type="hidden" name="product" value="<%= row[:product] %>">
+  <input type="hidden" name="variant" value="<%= row[:variant_id] %>">
+  <label>
+    <span>Preço na placa (R$ por <%= row[:unit] %>)</span>
+    <input type="text" name="price" inputmode="decimal" autocomplete="off" enterkeyhint="go"
+           placeholder="ex: 4,99" class="form-control" required>
+  </label>
+  <button type="submit" class="button primary">Tá justo?</button>
+<% end %>

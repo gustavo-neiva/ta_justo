@@ -3,7 +3,6 @@
 #                  spanning the same date range as the chart, so it overlays cleanly.
 # - note: human-readable cheapest/most-expensive month sentence (pt-BR).
 class SeasonalityCalculator
-  DOZENS_PER_BOX = 30
   MONTHS_PT = %w[janeiro fevereiro março abril maio junho
                  julho agosto setembro outubro novembro dezembro].freeze
 
@@ -71,11 +70,7 @@ class SeasonalityCalculator
   end
 
   def value_for(price)
-    case @variant.pricing_mode
-    when "per_dozen" then price.modal.to_f / DOZENS_PER_BOX
-    when "per_unit"  then price.price_per_kg.to_f * @variant.avg_weight_kg.to_f
-    else                  price.price_per_kg.to_f
-    end
+    @variant.comparable(price).to_f
   end
 
   def date_span

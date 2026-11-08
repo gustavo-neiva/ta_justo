@@ -86,6 +86,45 @@ class Variant < ApplicationRecord
     latest_price&.price_per_kg
   end
 
+  DOZENS_PER_BOX = 30 # eggs: CEASA quotes "Cx 30 dz"
+
+  # One CEASA row → price in the shopper's unit (R$/kg, R$/dúzia or R$/unidade),
+  # or nil when the row can't be converted. Single source for every surface.
+  def comparable(price)
+    comparable_with_basis(price)&.first
+  end
+
+  # [value, how-it-was-derived] — the basis string is shown in the checker's
+  # price breakdown so every number on screen can be traced to the bulletin.
+  def comparable_with_basis(price)
+    return nil unless price&.modal&.positive?
+
+    modal = price.modal.to_f
+    case pricing_mode
+    when "per_dozen"
+      [ modal / DOZENS_PER_BOX, "#{brl(modal)} ÷ 30 dúzias" ]
+    when "per_unit"
+      # Prefer what CEASA states (piece count, or a per-piece quote) over our
+      # avg-weight estimate: "Preg 2 kg/16 unid" × 1.2 kg/head was 9× off.
+      if (n = PackSize.count(price.raw_unit))
+        [ modal / n, "#{brl(modal)} ÷ #{n} peças" ]
+      elsif price.original_unit == "unit" || PackSize.single_unit?(price.raw_unit)
+        [ modal, "preço CEASA por peça" ]
+      elsif price.price_per_kg && avg_weight_kg&.positive?
+        [ price.price_per_kg.to_f * avg_weight_kg.to_f,
+          "#{brl(price.price_per_kg)}/kg × peça de ~#{(avg_weight_kg.to_f * 1000).round} g (peso estimado)" ]
+      end
+    else
+      return nil unless price.price_per_kg&.positive?
+      kg = PackSize.kg(price.raw_unit)
+      [ price.price_per_kg.to_f, kg && kg != 1 ? "#{brl(modal)} ÷ #{kg.to_s.sub(/\.0\z/, "").tr(".", ",")} kg" : "preço CEASA por kg" ]
+    end
+  end
+
+  def unit_label
+    { "per_dozen" => "dúzia", "per_unit" => "unidade" }.fetch(pricing_mode, "kg")
+  end
+
   # Single-row representative selection used by representative_price and by
   # surfaces that already have the variant's rows loaded (e.g. /precos).
   def pick_representative(rows)
@@ -104,7 +143,14 @@ class Variant < ApplicationRecord
     end
   end
 
+  # "R$ 1.234,50" — how prices are written on Brazilian signs.
+  def self.brl(value)
+    ActiveSupport::NumberHelper.number_to_currency(value, unit: "R$ ", separator: ",", delimiter: ".")
+  end
+
   private
+
+  def brl(value) = self.class.brl(value)
 
   # per_dozen rows are all the same box ("Cx 30 dz"); pack-size selection
   # does not apply, so we just take a stable single row.

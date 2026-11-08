@@ -1,0 +1,1252 @@
+# Checker catalog — what a shopper SEES at the stall, mapped to CEASA rows.
+#
+# CEASA groups by the first word of a name ("BATATA" holds four different
+# plants; "LIMÃO" holds a lime and a lemon). The checker groups by item: one
+# plant/part with one culinary use. ProductMap/Parser are untouched — members
+# point at existing (product slug, exact variant name) pairs.
+#
+# Fields
+#   id          stable slug (used in ?item= and recent-items storage)
+#   name        what people call it here (Rio)
+#   scientific  botanical identity shown on the card
+#   group       legumes | folhas | temperos | raizes | frutas | ovos
+#   icon        file in app/assets/images/produce/ (IconOven, MIT); omit → group fallback
+#   tint        red | green | orange | yellow | purple | brown
+#   top         true → shown in the stall grid before "mais"
+#   aliases     other names people type (regional, store labels, abbreviations)
+#   closest     varieties CEASA does NOT quote; search hits here show `note`
+#   confuse     ids of items with a misleading similar name
+#   members     CEASA variants; label/hint are shopper-facing (variety chips)
+#
+# test/models/checker_catalog_test.rb checks every member exists (exact
+# Unicode) and every produce variant belongs to exactly one item.
+
+# ── LEGUMES (hortaliças-fruto) ────────────────────────────────────────────────
+- id: tomate
+  name: Tomate
+  scientific: Solanum lycopersicum
+  group: legumes
+  icon: tomato
+  tint: red
+  top: true
+  aliases: [tomate salada, tomate longa vida, tomate carmem, tomate debora, tomate débora, tomate santa cruz]
+  confuse: [tomate-cereja]
+  members:
+    - { product: tomate, variant: Extra AA, label: Salada (Extra AA), hint: "redondo, o mais comum" }
+    - { product: tomate, variant: Italiano, label: Italiano, hint: alongado }
+
+- id: tomate-cereja
+  name: Tomate-cereja
+  scientific: Solanum lycopersicum var. cerasiforme
+  group: legumes
+  icon: tomato
+  tint: red
+  aliases: [tomatinho, tomate grape, tomate uva, cereja]
+  confuse: [tomate, cereja]
+  members:
+    - { product: tomate, variant: Cereja, label: Cereja, hint: bandeja }
+    - { product: tomate, variant: Sweet Grape, label: Sweet Grape, hint: alongadinho, note: "A embalagem \"Cx 1,4 kg - 4 band\" é ambígua no boletim; confira a conta." }
+
+- id: abobora
+  name: Abóbora
+  scientific: Cucurbita moschata / C. maxima
+  group: legumes
+  icon: pumpkin
+  tint: orange
+  top: true
+  aliases: [jerimum, moranga, abobora pedaco, abóbora pedaço]
+  members:
+    - { product: abobora, variant: Japonesa, label: Japonesa (cabotiá), hint: casca verde-escura }
+    - { product: abobora, variant: Pescoço, label: Pescoço, hint: "comprida, casca bege" }
+    - { product: abobora, variant: Baiana, label: Baiana }
+    - { product: abobora, variant: Sergipana, label: Sergipana }
+    - { product: abobora, variant: Branca, label: Branca }
+    - { product: abobora, variant: Moranga Híbrida, label: Moranga, hint: "gomos, casca laranja" }
+    - { product: abobora, variant: Moranga Baby, label: Moranga baby }
+  closest:
+    note: A CEASA não cota esse nome; mostramos as abóboras cotadas.
+    names: [paulista, menina brasileira, cabotian, kabocha, cabotia, cabotiá]
+
+- id: abobrinha
+  name: Abobrinha
+  scientific: Cucurbita pepo / C. moschata
+  group: legumes
+  icon: cucumber
+  tint: green
+  top: true
+  aliases: [abobrinha verde]
+  confuse: [abobora, pepino]
+  members:
+    - { product: abobrinha, variant: Italiana Extra, label: Italiana, hint: "verde-clara, reta" }
+    - { product: abobrinha, variant: Menina Extra, label: Menina, hint: pescoço curvo }
+
+- id: berinjela
+  name: Berinjela
+  scientific: Solanum melongena
+  group: legumes
+  icon: eggplant
+  tint: purple
+  top: true
+  aliases: [beringela, berinjela roxa]
+  members:
+    - { product: berinjela, variant: Extra, label: Comum }
+
+- id: chuchu
+  name: Chuchu
+  scientific: Sechium edule
+  group: legumes
+  tint: green
+  top: true
+  members:
+    - { product: chuchu, variant: Extra, label: Comum }
+
+- id: jilo
+  name: Jiló
+  scientific: Solanum aethiopicum
+  group: legumes
+  icon: eggplant
+  tint: green
+  members:
+    - { product: jilo, variant: Extra, label: Comum }
+
+- id: maxixe
+  name: Maxixe
+  scientific: Cucumis anguria
+  group: legumes
+  tint: green
+  members:
+    - { product: maxixe, variant: Comum, label: Comum }
+
+- id: quiabo
+  name: Quiabo
+  scientific: Abelmoschus esculentus
+  group: legumes
+  tint: green
+  top: true
+  members:
+    - { product: quiabo, variant: Extra, label: Comum }
+
+- id: pepino
+  name: Pepino
+  scientific: Cucumis sativus
+  group: legumes
+  icon: cucumber
+  tint: green
+  top: true
+  aliases: [pepino aodai, pepino salada]
+  confuse: [abobrinha, maxixe]
+  members:
+    - { product: pepino, variant: Comum Extra, label: Comum, hint: casca lisa verde-escura }
+    - { product: pepino, variant: Japonês, label: Japonês, hint: "fino, casca rugosa" }
+
+- id: pimentao
+  name: Pimentão
+  scientific: Capsicum annuum
+  group: legumes
+  icon: bell-pepper
+  tint: green
+  top: true
+  confuse: [pimenta]
+  members:
+    - { product: pimentao, variant: Verde Extra A, label: Verde }
+    - { product: pimentao, variant: Vermelho, label: Vermelho }
+    - { product: pimentao, variant: Amarelo, label: Amarelo }
+  closest:
+    note: A CEASA não cota pimentão laranja; use vermelho ou amarelo como referência.
+    names: [laranja]
+
+- id: pimenta
+  name: Pimenta
+  scientific: Capsicum spp.
+  group: legumes
+  icon: chili
+  tint: red
+  aliases: [pimenta dedo de moca, dedo-de-moça, dedo de moça, pimenta de cheiro, malagueta]
+  confuse: [pimentao]
+  members:
+    - { product: pimenta, variant: Dedo, label: Dedo-de-moça, hint: C. baccatum }
+    - { product: pimenta, variant: De Cheiro, label: De cheiro, hint: C. chinense }
+    - { product: pimenta, variant: Malagueta, label: Malagueta, hint: C. frutescens }
+
+- id: vagem
+  name: Vagem
+  scientific: Phaseolus vulgaris
+  group: legumes
+  icon: soybean
+  tint: green
+  top: true
+  aliases: [feijao vagem, feijão-vagem]
+  confuse: [ervilha-torta, feijao-de-corda]
+  members:
+    - { product: vagem, variant: Macarrão Extra, label: Macarrão, hint: roliça }
+    - { product: vagem, variant: Manteiga Extra, label: Manteiga, hint: achatada }
+
+- id: ervilha-torta
+  name: Ervilha-torta (vagem)
+  scientific: Pisum sativum
+  group: legumes
+  icon: soybean
+  tint: green
+  aliases: [ervilha, ervilha vagem, ervilha torta]
+  confuse: [vagem]
+  members:
+    - { product: ervilha-vagem, variant: Vagem Extra, label: Ervilha-torta }
+
+- id: feijao-de-corda
+  name: Feijão-de-corda (vagem)
+  scientific: Vigna unguiculata
+  group: legumes
+  icon: soybean
+  tint: green
+  aliases: [feijao verde, feijão-verde, fradinho, macassar]
+  confuse: [vagem]
+  members:
+    - { product: feijao-de-corda, variant: De Corda, label: De corda }
+
+- id: milho-verde
+  name: Milho verde
+  scientific: Zea mays
+  group: legumes
+  icon: corn
+  tint: yellow
+  aliases: [milho, espiga]
+  members:
+    - { product: milho-verde, variant: Verde, label: Espiga }
+
+# ── FOLHAS ───────────────────────────────────────────────────────────────────
+- id: alface
+  name: Alface
+  scientific: Lactuca sativa
+  group: folhas
+  icon: lettuce
+  tint: green
+  top: true
+  members:
+    - { product: alface, variant: Crespa Extra, label: Crespa, hint: folhas onduladas }
+    - { product: alface, variant: Lisa Extra, label: Lisa, hint: folhas macias }
+  closest:
+    note: A CEASA só cota alface crespa e lisa — usamos como referência mais próxima.
+    names: [americana, roxa, romana, mimosa, frisee, frisée, hidroponica, hidropônica, hidrop, baby, lollo]
+
+- id: couve
+  name: Couve
+  scientific: Brassica oleracea var. acephala
+  group: folhas
+  icon: leaf
+  tint: green
+  top: true
+  aliases: [couve manteiga, couve mineira]
+  confuse: [couve-de-bruxelas, couve-flor]
+  members:
+    - { product: couve, variant: Comum, label: Manteiga (comum), hint: maço }
+
+- id: couve-de-bruxelas
+  name: Couve-de-bruxelas
+  scientific: Brassica oleracea var. gemmifera
+  group: folhas
+  icon: cabbage
+  tint: green
+  aliases: [bruxelas]
+  confuse: [couve]
+  members:
+    - { product: couve, variant: Bruxelas, label: Couve-de-bruxelas }
+
+- id: repolho
+  name: Repolho
+  scientific: Brassica oleracea var. capitata
+  group: folhas
+  icon: cabbage
+  tint: green
+  top: true
+  members:
+    - { product: repolho, variant: Verde Grande, label: Verde }
+    - { product: repolho, variant: Roxo, label: Roxo }
+
+- id: brocolis
+  name: Brócolis
+  scientific: Brassica oleracea var. italica
+  group: folhas
+  icon: broccoli
+  tint: green
+  top: true
+  aliases: [brocoli, brócolos]
+  members:
+    - { product: brocolis, variant: Comum, label: Ramoso (maço), hint: maço com folhas }
+    - { product: brocolis, variant: Americana, label: Ninja / de cabeça, hint: cabeça única }
+  closest:
+    note: "\"Ninja\" e \"japonês\" são o brócolis de cabeça (Americana) na CEASA."
+    names: [ninja, japones, japonês, cabeca, cabeça]
+
+- id: couve-flor
+  name: Couve-flor
+  scientific: Brassica oleracea var. botrytis
+  group: folhas
+  icon: broccoli
+  tint: brown
+  top: true
+  aliases: [couveflor]
+  confuse: [couve]
+  members:
+    - { product: couve-flor, variant: Grande, label: Cabeça }
+    - { product: couve-flor, variant: Grande 2, label: Cabeça (antiga cotação) }
+
+- id: acelga
+  name: Acelga
+  scientific: Beta vulgaris var. cicla
+  group: folhas
+  icon: leaf
+  tint: green
+  members:
+    - { product: acelga, variant: Comum, label: Cabeça }
+
+- id: agriao
+  name: Agrião
+  scientific: Nasturtium officinale
+  group: folhas
+  icon: leaf
+  tint: green
+  members:
+    - { product: agriao, variant: Comum, label: Maço }
+
+- id: rucula
+  name: Rúcula
+  scientific: Eruca vesicaria
+  group: folhas
+  icon: leaf
+  tint: green
+  top: true
+  aliases: [rucola, rúcola]
+  members:
+    - { product: rucula, variant: Comum, label: Maço }
+
+- id: espinafre
+  name: Espinafre
+  scientific: Tetragonia tetragonoides / Spinacia oleracea
+  group: folhas
+  icon: leaf
+  tint: green
+  members:
+    - { product: espinafre, variant: Comum, label: Maço }
+
+- id: chicoria
+  name: Chicória
+  scientific: Cichorium endivia
+  group: folhas
+  icon: lettuce
+  tint: green
+  aliases: [escarola]
+  confuse: [almeirao, endivia]
+  members:
+    - { product: chicoria, variant: Comum, label: Pé }
+
+- id: almeirao
+  name: Almeirão
+  scientific: Cichorium intybus
+  group: folhas
+  icon: leaf
+  tint: green
+  confuse: [chicoria]
+  members:
+    - { product: almeirao, variant: Comum, label: Maço }
+
+- id: catalonha
+  name: Catalonha
+  scientific: Cichorium intybus (catalogna)
+  group: folhas
+  icon: leaf
+  tint: green
+  members:
+    - { product: catalonha, variant: Comum, label: Maço }
+
+- id: mostarda
+  name: Mostarda (folha)
+  scientific: Brassica juncea
+  group: folhas
+  icon: leaf
+  tint: green
+  members:
+    - { product: mostarda, variant: Comum, label: Maço }
+
+- id: bertalha
+  name: Bertalha
+  scientific: Basella alba
+  group: folhas
+  icon: leaf
+  tint: green
+  members:
+    - { product: bertalha, variant: Comum, label: Maço }
+
+- id: taioba
+  name: Taioba
+  scientific: Xanthosoma taioba
+  group: folhas
+  icon: leaf
+  tint: green
+  members:
+    - { product: taioba, variant: Comum, label: Maço }
+
+- id: endivia
+  name: Endívia
+  scientific: Cichorium intybus var. foliosum
+  group: folhas
+  icon: salad
+  tint: green
+  confuse: [chicoria]
+  members:
+    - { product: endivia, variant: Comum, label: Comum }
+
+- id: aipo
+  name: Aipo (salsão)
+  scientific: Apium graveolens
+  group: folhas
+  icon: plant
+  tint: green
+  aliases: [salsao, salsão, salsão aipo]
+  confuse: [salsa, mandioquinha]
+  members:
+    - { product: aipo, variant: Comum, label: Maço }
+
+- id: alho-poro
+  name: Alho-poró
+  scientific: Allium ampeloprasum
+  group: folhas
+  icon: plant
+  tint: green
+  aliases: [alho poro, alho porro]
+  confuse: [alho, cebolinha]
+  members:
+    - { product: alho-poro, variant: Comum, label: Maço }
+
+- id: erva-doce
+  name: Erva-doce (funcho)
+  scientific: Foeniculum vulgare
+  group: folhas
+  icon: plant
+  tint: green
+  aliases: [funcho, erva doce]
+  members:
+    - { product: erva-doce, variant: Comum, label: Bulbo }
+
+- id: aspargo
+  name: Aspargo
+  scientific: Asparagus officinalis
+  group: folhas
+  icon: plant
+  tint: green
+  aliases: [aspargos]
+  members:
+    - { product: aspargo, variant: Comum, label: Maço }
+
+- id: alcachofra
+  name: Alcachofra
+  scientific: Cynara cardunculus var. scolymus
+  group: folhas
+  icon: flower
+  tint: green
+  members:
+    - { product: alcachofra, variant: Comum, label: Comum }
+
+- id: moyashi
+  name: Moyashi (broto de feijão)
+  scientific: Vigna radiata (broto)
+  group: folhas
+  icon: sprout
+  tint: green
+  aliases: [broto de feijao, broto de feijão, broto]
+  members:
+    - { product: moyashi, variant: Comum, label: Pacote }
+
+- id: nira
+  name: Nirá
+  scientific: Allium tuberosum
+  group: folhas
+  icon: herb
+  tint: green
+  aliases: [cebolinha japonesa, cebolinha chinesa]
+  members:
+    - { product: nira, variant: Comum, label: Maço }
+
+- id: palmito
+  name: Palmito (in natura)
+  scientific: Bactris gasipaes / Euterpe spp.
+  group: folhas
+  icon: palm-tree
+  tint: green
+  aliases: [pupunha]
+  members:
+    - { product: palmito, variant: Comum, label: Haste }
+
+# ── TEMPEROS ─────────────────────────────────────────────────────────────────
+- id: cheiro-verde
+  name: Cheiro-verde
+  scientific: salsa + cebolinha (maço misto)
+  group: temperos
+  icon: herb
+  tint: green
+  top: true
+  aliases: [cheiro verde, tempero verde]
+  members:
+    - { product: cheiro-verde, variant: Verde, label: Molho }
+
+- id: salsa
+  name: Salsa (salsinha)
+  scientific: Petroselinum crispum
+  group: temperos
+  icon: herb
+  tint: green
+  top: true
+  aliases: [salsinha, perrexil]
+  confuse: [aipo, mandioquinha]
+  members:
+    - { product: salsa, variant: Comum, label: Maço }
+
+- id: cebolinha
+  name: Cebolinha
+  scientific: Allium fistulosum
+  group: temperos
+  icon: herb
+  tint: green
+  top: true
+  aliases: [cebolinha verde]
+  confuse: [cebola, nira]
+  members:
+    - { product: cebolinha, variant: Comum, label: Maço }
+
+- id: coentro
+  name: Coentro
+  scientific: Coriandrum sativum
+  group: temperos
+  icon: herb
+  tint: green
+  top: true
+  members:
+    - { product: coentro, variant: Comum, label: Maço }
+
+- id: hortela
+  name: Hortelã
+  scientific: Mentha spp.
+  group: temperos
+  icon: herb
+  tint: green
+  aliases: [menta]
+  members:
+    - { product: hortela, variant: Comum, label: Molho }
+
+- id: manjericao
+  name: Manjericão
+  scientific: Ocimum basilicum
+  group: temperos
+  icon: herb
+  tint: green
+  aliases: [alfavaca]
+  members:
+    - { product: manjericao, variant: Comum, label: Maço }
+
+- id: alecrim
+  name: Alecrim
+  scientific: Salvia rosmarinus
+  group: temperos
+  icon: herb
+  tint: green
+  members:
+    - { product: alecrim, variant: Comum, label: Maço }
+
+- id: louro
+  name: Louro
+  scientific: Laurus nobilis
+  group: temperos
+  icon: leaf
+  tint: green
+  members:
+    - { product: louro, variant: Comum, label: Molho }
+
+# ── RAÍZES, BULBOS E TUBÉRCULOS ──────────────────────────────────────────────
+- id: batata-inglesa
+  name: Batata (inglesa)
+  scientific: Solanum tuberosum
+  group: raizes
+  icon: potato
+  tint: brown
+  top: true
+  aliases: [batata, batata inglesa, batata lavada, batata asterix, batata monalisa, batata bolinha]
+  confuse: [batata-doce, mandioquinha, yacon]
+  members:
+    - { product: batata, variant: Comum Especial, label: Comum, hint: casca clara }
+    - { product: batata, variant: Lisa Especial, label: Lisa, hint: lavada }
+    - { product: batata, variant: Asterix Especial, label: Asterix, hint: casca rosada }
+
+- id: batata-doce
+  name: Batata-doce
+  scientific: Ipomoea batatas
+  group: raizes
+  icon: sweet-potato
+  tint: purple
+  top: true
+  aliases: [batata doce, batata doce roxa, batata doce rosada]
+  confuse: [batata-inglesa, yacon]
+  members:
+    - { product: batata, variant: Doce Extra, label: Batata-doce }
+
+- id: mandioquinha
+  name: Mandioquinha (batata baroa)
+  scientific: Arracacia xanthorrhiza
+  group: raizes
+  icon: root
+  tint: yellow
+  top: true
+  aliases: [batata baroa, baroa, batata salsa, mandioquinha salsa]
+  confuse: [batata-inglesa, aipim, salsa]
+  members:
+    - { product: batata, variant: Baroa Extra, label: Mandioquinha }
+
+- id: yacon
+  name: Yacon
+  scientific: Smallanthus sonchifolius
+  group: raizes
+  icon: root
+  tint: brown
+  aliases: [batata yacon, yacón, batata yakon, yakon]
+  confuse: [batata-doce, batata-inglesa]
+  members:
+    - { product: batata, variant: Yacon, label: Yacon }
+
+- id: aipim
+  name: Aipim (mandioca)
+  scientific: Manihot esculenta
+  group: raizes
+  icon: root
+  tint: brown
+  top: true
+  aliases: [mandioca, macaxeira, aipim descascado, mandioca descascada]
+  confuse: [mandioquinha]
+  members:
+    - { product: aipim, variant: Comum, label: Com casca }
+
+- id: inhame
+  name: Inhame
+  scientific: Colocasia esculenta (taro)
+  group: raizes
+  icon: root
+  tint: brown
+  top: true
+  aliases: [taro]
+  confuse: [cara]
+  members:
+    - { product: inhame, variant: Chinês Extra, label: Chinês, hint: "pequeno, peludo" }
+    - { product: inhame, variant: De Cabeça, label: De cabeça, hint: grande }
+
+- id: cara
+  name: Cará
+  scientific: Dioscorea spp.
+  group: raizes
+  icon: root
+  tint: brown
+  aliases: [inhame do nordeste, inhame da costa, inhame-da-costa]
+  confuse: [inhame]
+  members:
+    - { product: cara, variant: Comum, label: Comum }
+
+- id: cenoura
+  name: Cenoura
+  scientific: Daucus carota
+  group: raizes
+  icon: carrot
+  tint: orange
+  top: true
+  members:
+    - { product: cenoura, variant: Extra A, label: Comum }
+
+- id: beterraba
+  name: Beterraba
+  scientific: Beta vulgaris
+  group: raizes
+  icon: root
+  tint: purple
+  top: true
+  aliases: [beterava]
+  members:
+    - { product: beterraba, variant: Extra, label: Comum }
+
+- id: cebola
+  name: Cebola
+  scientific: Allium cepa
+  group: raizes
+  icon: onion
+  tint: brown
+  top: true
+  aliases: [cebola branca, cebola amarela]
+  confuse: [cebolinha]
+  members:
+    - { product: cebola, variant: Nacional Branca, label: Nacional, hint: casca amarelada }
+    - { product: cebola, variant: Nacional Roxa, label: Roxa nacional }
+    - { product: cebola, variant: Importada Branca, label: Importada }
+    - { product: cebola, variant: Importada Roxa, label: Roxa importada }
+  closest:
+    note: A CEASA não cota esse tipo; use a cebola nacional como referência.
+    names: [perola, pérola, baby, cebolete]
+
+- id: alho
+  name: Alho
+  scientific: Allium sativum
+  group: raizes
+  icon: garlic
+  tint: brown
+  top: true
+  confuse: [alho-poro]
+  members:
+    - { product: alho, variant: Nacional Roxo, label: Roxo nacional }
+    - { product: alho, variant: Importado Branco, label: Branco importado, hint: chinês/argentino }
+    - { product: alho, variant: Nacional Branco, label: Branco nacional }
+    - { product: alho, variant: Importado Roxo, label: Roxo importado }
+
+- id: gengibre
+  name: Gengibre
+  scientific: Zingiber officinale
+  group: raizes
+  icon: root
+  tint: yellow
+  members:
+    - { product: gengibre, variant: Comum, label: Comum }
+
+- id: nabo
+  name: Nabo
+  scientific: Raphanus sativus var. longipinnatus / Brassica rapa
+  group: raizes
+  icon: root
+  tint: brown
+  confuse: [rabanete]
+  members:
+    - { product: nabo, variant: Extra, label: Comum }
+
+- id: rabanete
+  name: Rabanete
+  scientific: Raphanus sativus
+  group: raizes
+  icon: root
+  tint: red
+  confuse: [nabo]
+  members:
+    - { product: rabanete, variant: Comum, label: Maço }
+
+# ── FRUTAS ───────────────────────────────────────────────────────────────────
+- id: banana
+  name: Banana
+  scientific: Musa spp.
+  group: frutas
+  icon: banana
+  tint: yellow
+  top: true
+  aliases: [banana dagua, banana d'agua]
+  confuse: [banana-da-terra, maca]
+  members:
+    - { product: banana, variant: Prata Extra, label: Prata }
+    - { product: banana, variant: "Nanica/D'Água Extra", label: Nanica (d'água) }
+    - { product: banana, variant: Maçã Extra, label: Maçã }
+    - { product: banana, variant: Ouro, label: Ouro, hint: pequenina }
+    - { product: banana, variant: Pacovan, label: Pacovan, hint: prata grande }
+    - { product: banana, variant: Figo, label: Figo (marmelo) }
+
+- id: banana-da-terra
+  name: Banana-da-terra
+  scientific: Musa AAB (plátano, de cozinhar)
+  group: frutas
+  icon: banana
+  tint: green
+  aliases: [banana comprida, platano, plátano]
+  confuse: [banana]
+  members:
+    - { product: banana, variant: Da Terra, label: Da terra }
+
+- id: laranja
+  name: Laranja
+  scientific: Citrus sinensis
+  group: frutas
+  icon: orange
+  tint: orange
+  top: true
+  aliases: [laranja baia, laranja de suco]
+  confuse: [laranja-lima, kinkan, pera]
+  members:
+    - { product: laranja, variant: Pêra Grande, label: Pera, hint: suco }
+    - { product: laranja, variant: Bahia Grande, label: Bahia (de umbigo) }
+    - { product: laranja, variant: Natal Grande, label: Natal }
+    - { product: laranja, variant: Seleta Grande, label: Seleta }
+    - { product: laranja, variant: Valencia Grande, label: Valência }
+
+- id: laranja-lima
+  name: Laranja-lima
+  scientific: Citrus sinensis (sem acidez)
+  group: frutas
+  icon: orange
+  tint: yellow
+  aliases: [laranja lima]
+  confuse: [lima-da-persia, laranja]
+  members:
+    - { product: laranja, variant: Lima, label: Laranja-lima }
+
+- id: lima-da-persia
+  name: Lima-da-pérsia
+  scientific: Citrus limettioides
+  group: frutas
+  icon: lemon
+  tint: yellow
+  aliases: [lima, lima da persia]
+  confuse: [laranja-lima, limao-taiti]
+  members:
+    - { product: lima, variant: Comum, label: Comum }
+
+- id: kinkan
+  name: Kinkan
+  scientific: Fortunella spp. (kumquat — não é laranja)
+  group: frutas
+  icon: orange
+  tint: orange
+  aliases: [laranja kinkan, kumquat, laranjinha kinkan]
+  confuse: [laranja]
+  members:
+    - { product: laranja-kinkan, variant: Importada, label: Importada }
+
+- id: limao-taiti
+  name: Limão Taiti
+  scientific: Citrus × latifolia (lima ácida; no Brasil chamamos de limão)
+  group: frutas
+  icon: lemon
+  tint: green
+  top: true
+  aliases: [limao, limão, limao tahiti, limão tahiti, limao verde]
+  confuse: [limao-siciliano, lima-da-persia]
+  members:
+    - { product: limao, variant: Taiti, label: Taiti }
+  closest:
+    note: A CEASA não cota limão-cravo nem galego; o Taiti é a referência mais próxima.
+    names: [cravo, galego, rosa]
+
+- id: limao-siciliano
+  name: Limão-siciliano
+  scientific: Citrus limon (o "lemon" verdadeiro)
+  group: frutas
+  icon: lemon
+  tint: yellow
+  aliases: [limao siciliano, limão amarelo]
+  confuse: [limao-taiti]
+  members:
+    - { product: limao, variant: Siciliano Nacional, label: Nacional }
+    - { product: limao-siciliano-importado, variant: Importado, label: Importado }
+
+- id: tangerina
+  name: Tangerina (mexerica)
+  scientific: Citrus reticulata (Murcott é tangor, híbrido)
+  group: frutas
+  icon: orange
+  tint: orange
+  top: true
+  aliases: [mexerica, bergamota, mimosa, murcote, murcott, ponca]
+  members:
+    - { product: tangerina, variant: Ponkan Extra, label: Ponkan, hint: casca solta }
+    - { product: tangerina, variant: Comum/Rio Extra, label: Comum (do Rio) }
+    - { product: tangerina, variant: Murcott Extra, label: Murcote, hint: casca presa }
+
+- id: mamao
+  name: Mamão
+  scientific: Carica papaya
+  group: frutas
+  tint: orange
+  top: true
+  aliases: [papaia]
+  members:
+    - { product: mamao, variant: Papaya/Havai, label: Papaia (havaí), hint: pequeno }
+    - { product: mamao, variant: Formosa, label: Formosa, hint: grande }
+
+- id: manga
+  name: Manga
+  scientific: Mangifera indica
+  group: frutas
+  tint: orange
+  top: true
+  members:
+    - { product: manga, variant: Palmer, label: Palmer, hint: "alongada, roxa-esverdeada" }
+    - { product: manga, variant: Tommy Atkins, label: Tommy, hint: vermelha }
+    - { product: manga, variant: Espada, label: Espada, hint: "pequena, verde-amarela" }
+
+- id: maca
+  name: Maçã
+  scientific: Malus domestica
+  group: frutas
+  icon: apple
+  tint: red
+  top: true
+  aliases: [maca verde, maçã argentina, maçã chilena]
+  confuse: [banana]
+  members:
+    - { product: maca, variant: Nacional Gala, label: Gala nacional }
+    - { product: maca, variant: Nacional Fuji, label: Fuji nacional }
+    - { product: maca-importada, variant: Importada Gala, label: Gala importada }
+    - { product: maca-importada, variant: Importada Fuji, label: Fuji importada }
+    - { product: maca-importada, variant: Importada Red Delicious, label: Red Delicious (importada) }
+    - { product: maca-importada, variant: Importada Grand Smith, label: Verde Granny Smith (importada) }
+
+- id: pera
+  name: Pera
+  scientific: Pyrus communis
+  group: frutas
+  icon: pear
+  tint: yellow
+  aliases: [pêra, pera portuguesa, pera williams, pera dangou, pera d'anjou]
+  confuse: [laranja]
+  members:
+    - { product: pera, variant: Importada Portuguesa, label: Portuguesa }
+    - { product: pera, variant: Importada Willians, label: Williams }
+    - { product: pera, variant: "Importada D'Anjour", label: "D'Anjou" }
+    - { product: pera, variant: Importada Pacck Triunph, label: Packham }
+    - { product: pera, variant: Importada Winterbarlett, label: Winter Bartlett }
+
+- id: uva
+  name: Uva
+  scientific: Vitis vinifera / V. labrusca
+  group: frutas
+  icon: grapes
+  tint: purple
+  top: true
+  aliases: [uva sem semente, uva sem caroço]
+  members:
+    - { product: uva, variant: Italia Extra, label: Itália, hint: "verde, com semente" }
+    - { product: uva, variant: Rosada/Niagara Extra, label: Niágara, hint: "rosada, pequena" }
+    - { product: uva, variant: Thompson Nacional, label: Thompson, hint: "verde, sem semente" }
+    - { product: uva, variant: Vitória, label: Vitória, hint: "preta, sem semente" }
+    - { product: uva, variant: Benitaka Extra, label: Benitaka }
+    - { product: uva, variant: Rubi Extra, label: Rubi }
+    - { product: uva, variant: Red Globe Nacional, label: Red Globe nacional }
+    - { product: uva-importada, variant: Red Globe Importada Extra, label: Red Globe importada }
+    - { product: uva-importada, variant: Thompson Importada Extra, label: Thompson importada }
+  closest:
+    note: A CEASA não cota essa uva; compare com uma de mesmo tipo (com/sem semente).
+    names: [crimson, isabel, bordo, bordô]
+
+- id: melancia
+  name: Melancia
+  scientific: Citrullus lanatus
+  group: frutas
+  icon: watermelon
+  tint: green
+  top: true
+  confuse: [melao]
+  members:
+    - { product: melancia, variant: Grande, label: Graúda }
+  closest:
+    note: A CEASA só cota a melancia graúda; mini/baby costuma custar mais por kg.
+    names: [baby, mini, pedaco, pedaço]
+
+- id: melao
+  name: Melão
+  scientific: Cucumis melo
+  group: frutas
+  tint: yellow
+  top: true
+  confuse: [melancia]
+  members:
+    - { product: melao, variant: Amarelo Tipo 5, label: Amarelo }
+    - { product: melao, variant: Pele de Sapo Tipo 4, label: Pele de sapo }
+    - { product: melao, variant: De Rede Tipo 4, label: Rendilhado (de rede), hint: cantaloupe }
+  closest:
+    note: A CEASA não cota esse melão; use um tipo parecido como referência.
+    names: [orange, gália, galia, cantaloupe, cantalupe]
+
+- id: abacaxi
+  name: Abacaxi
+  scientific: Ananas comosus
+  group: frutas
+  icon: pineapple
+  tint: yellow
+  top: true
+  members:
+    - { product: abacaxi, variant: Pérola Médio, label: Pérola }
+    - { product: abacaxi, variant: Ananás Grande, label: Havaí (ananás) }
+
+- id: maracuja
+  name: Maracujá
+  scientific: Passiflora edulis
+  group: frutas
+  tint: yellow
+  top: true
+  aliases: [maracuja azedo, maracujá amarelo]
+  members:
+    - { product: maracuja, variant: Comum, label: Azedo (amarelo) }
+  closest:
+    note: A CEASA só cota o maracujá azedo.
+    names: [doce]
+
+- id: morango
+  name: Morango
+  scientific: Fragaria × ananassa
+  group: frutas
+  icon: strawberry
+  tint: red
+  top: true
+  members:
+    - { product: morango, variant: Extra, label: Bandeja }
+
+- id: abacate
+  name: Abacate
+  scientific: Persea americana
+  group: frutas
+  icon: avocado
+  tint: green
+  top: true
+  aliases: [avocado]
+  members:
+    - { product: abacate, variant: Comum, label: Comum }
+
+- id: coco-verde
+  name: Coco verde
+  scientific: Cocos nucifera (de beber)
+  group: frutas
+  icon: coconut
+  tint: green
+  aliases: [coco, coco gelado]
+  confuse: [coco-seco]
+  members:
+    - { product: coco, variant: Verde, label: Unidade }
+
+- id: coco-seco
+  name: Coco seco
+  scientific: Cocos nucifera (maduro)
+  group: frutas
+  icon: coconut
+  tint: brown
+  aliases: [coco ralar]
+  confuse: [coco-verde]
+  members:
+    - { product: coco, variant: Seco, label: Unidade }
+
+- id: goiaba
+  name: Goiaba
+  scientific: Psidium guajava
+  group: frutas
+  tint: red
+  aliases: [goiaba vermelha]
+  members:
+    - { product: goiaba, variant: Vermelha Tipo 12, label: Vermelha }
+
+- id: kiwi
+  name: Kiwi
+  scientific: Actinidia deliciosa
+  group: frutas
+  tint: brown
+  members:
+    - { product: kiwi, variant: Nacional, label: Nacional }
+    - { product: kiwi-importado, variant: Importado, label: Importado }
+
+- id: pessego
+  name: Pêssego
+  scientific: Prunus persica
+  group: frutas
+  icon: peach
+  tint: orange
+  aliases: [pessego]
+  confuse: [nectarina]
+  members:
+    - { product: pessego, variant: Nacional, label: Nacional }
+    - { product: pessego-importado, variant: Importado, label: Importado }
+
+- id: nectarina
+  name: Nectarina
+  scientific: Prunus persica var. nucipersica
+  group: frutas
+  icon: peach
+  tint: red
+  confuse: [pessego]
+  members:
+    - { product: nectarina, variant: Nacional, label: Nacional }
+    - { product: nectarina-importada, variant: Importada, label: Importada }
+
+- id: ameixa
+  name: Ameixa
+  scientific: Prunus salicina / P. domestica
+  group: frutas
+  tint: purple
+  members:
+    - { product: ameixa, variant: Nacional, label: Nacional }
+    - { product: ameixa-importada, variant: Importada, label: Importada }
+
+- id: caqui
+  name: Caqui
+  scientific: Diospyros kaki
+  group: frutas
+  tint: orange
+  members:
+    - { product: caqui, variant: Rama Forte A, label: Rama Forte }
+    - { product: caqui, variant: Fuyu, label: Fuyu, hint: firme }
+
+- id: figo
+  name: Figo
+  scientific: Ficus carica
+  group: frutas
+  tint: purple
+  confuse: [banana]
+  members:
+    - { product: figo, variant: Verde Tipo 8, label: Comum }
+
+- id: pinha
+  name: Pinha (fruta-do-conde)
+  scientific: Annona squamosa
+  group: frutas
+  tint: green
+  aliases: [fruta do conde, fruta-do-conde, ata]
+  confuse: [atemoia]
+  members:
+    - { product: pinha, variant: Tipo 4, label: Comum }
+
+- id: atemoia
+  name: Atemoia
+  scientific: Annona × atemoya
+  group: frutas
+  tint: green
+  confuse: [pinha]
+  members:
+    - { product: atemoia, variant: Comum, label: Comum }
+
+- id: graviola
+  name: Graviola
+  scientific: Annona muricata
+  group: frutas
+  tint: green
+  members:
+    - { product: graviola, variant: Comum, label: Comum }
+
+- id: jabuticaba
+  name: Jabuticaba
+  scientific: Plinia cauliflora
+  group: frutas
+  tint: purple
+  aliases: [jaboticaba]
+  members:
+    - { product: jaboticaba, variant: Comum, label: Comum }
+
+- id: caju
+  name: Caju
+  scientific: Anacardium occidentale
+  group: frutas
+  tint: red
+  members:
+    - { product: caju, variant: Comum, label: Bandeja }
+
+- id: caja
+  name: Cajá
+  scientific: Spondias mombin
+  group: frutas
+  tint: yellow
+  aliases: [taperebá]
+  members:
+    - { product: caja, variant: Comum, label: Comum }
+
+- id: seriguela
+  name: Seriguela
+  scientific: Spondias purpurea
+  group: frutas
+  tint: red
+  aliases: [siriguela, ceriguela]
+  members:
+    - { product: seriguela, variant: Comum, label: Comum }
+
+- id: carambola
+  name: Carambola
+  scientific: Averrhoa carambola
+  group: frutas
+  tint: yellow
+  members:
+    - { product: carambola, variant: Comum, label: Comum }
+
+- id: amora
+  name: Amora
+  scientific: Rubus spp. / Morus nigra
+  group: frutas
+  tint: purple
+  members:
+    - { product: amora, variant: Comum, label: Bandeja }
+
+- id: lichia
+  name: Lichia
+  scientific: Litchi chinensis
+  group: frutas
+  tint: red
+  members:
+    - { product: lichia, variant: Comum, label: Comum }
+
+- id: pitaya
+  name: Pitaia
+  scientific: Selenicereus spp.
+  group: frutas
+  tint: red
+  aliases: [pitaya, fruta do dragao, fruta-do-dragão]
+  members:
+    - { product: pitaya, variant: Comum, label: Nacional }
+    - { product: pitaya-importada, variant: Importada, label: Importada }
+
+- id: roma
+  name: Romã
+  scientific: Punica granatum
+  group: frutas
+  tint: red
+  members:
+    - { product: roma, variant: Comum, label: Comum }
+
+- id: sapoti
+  name: Sapoti
+  scientific: Manilkara zapota
+  group: frutas
+  tint: brown
+  aliases: [saputi]
+  members:
+    - { product: saputi, variant: Comum, label: Comum }
+
+- id: tamarindo
+  name: Tamarindo
+  scientific: Tamarindus indica
+  group: frutas
+  tint: brown
+  members:
+    - { product: tamarindo, variant: Comum, label: Comum }
+
+- id: cereja
+  name: Cereja
+  scientific: Prunus avium
+  group: frutas
+  icon: cherry
+  tint: red
+  confuse: [tomate-cereja]
+  members:
+    - { product: cereja, variant: Importada, label: Importada }
+
+- id: damasco
+  name: Damasco (fresco)
+  scientific: Prunus armeniaca
+  group: frutas
+  tint: orange
+  members:
+    - { product: damasco, variant: Importado, label: Importado }
+
+# ── OVOS ─────────────────────────────────────────────────────────────────────
+- id: ovo
+  name: Ovo
+  scientific: Gallus gallus domesticus
+  group: ovos
+  icon: egg
+  tint: brown
+  top: true
+  aliases: [ovos, duzia de ovos]
+  closest:
+    note: A CEASA não cota ovo caipira nem orgânico; o ovo comum é a referência mais próxima.
+    names: [caipira, organico, orgânico]
+  members:
+    - { product: ovo, variant: Branco Extra, label: Branco }
+    - { product: ovo, variant: Vermelho Extra, label: Vermelho }
+
+- id: ovo-codorna
+  name: Ovo de codorna
+  scientific: Coturnix japonica
+  group: ovos
+  icon: egg
+  tint: brown
+  aliases: [codorna]
+  members:
+    - { product: ovo-codorna, variant: De Codorna, label: Dúzia }

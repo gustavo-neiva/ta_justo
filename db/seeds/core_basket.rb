@@ -96,28 +96,6 @@ module CoreBasket
   def self.all_products
     Product.where(slug: SLUGS).order(:name)
   end
-
-  def self.checkable_list
-    # Returns array of {slug, name, default_variant_name} for the checker dropdown
-    all_products.includes(:default_variant).map do |p|
-      {
-        slug: p.slug,
-        name: p.name,
-        default_variant: p.default_variant&.name
-      }
-    end
-  end
-
-  def self.search_index
-    # JSON-encodable index for the live product search (product + variant names)
-    all_products.includes(:variants).order(:name).map do |product|
-      {
-        slug: product.slug,
-        name: product.name,
-        variants: product.variants.order(:name).map { |variant| { id: variant.id, name: variant.name } }
-      }
-    end
-  end
 end
 
 puts "[ok] Core basket defined: #{CoreBasket::SLUGS.count} products"
