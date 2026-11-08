@@ -63,7 +63,7 @@ module ApplicationHelper
 
     text  = timing.label
 
-    content_tag(:span, safe_join([timing_icon(timing.bucket), text], " "), class: "epoca-pill #{bucket_class}")
+    content_tag(:span, safe_join([ timing_icon(timing.bucket), text ], " "), class: "epoca-pill #{bucket_class}")
   end
 
   # Renders a price in its honest CEASA unit: /kg when CEASA quotes by kg,

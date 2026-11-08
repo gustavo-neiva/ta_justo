@@ -47,3 +47,5 @@
 # kept out of the public repo. Fetch runs locally per the geoblock note in AGENTS.md.
 /bin/ceasa_local_fetch.sh
 /bin/ceasa_sync_hetzner.sh
+.robur/
+.robur.conf

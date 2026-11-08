@@ -20,7 +20,7 @@ class PrecosController < ApplicationController
 
     (1..6).each do |section_num|
       begin
-        # Browse page shows every priced row CEASA published today. The
+      # Browse page shows every priced row CEASA published today. The
       # fair_relevant flag gates the *checker's* core basket, not this list;
       # applying it here wrongly hid imported fruits, herbs, exotic fruits, etc.
       section_prices = @latest_bulletin.prices

@@ -71,6 +71,8 @@ app host. The host only ingests from already-fetched PDFs (disk-only, idempotent
   in seeds silently fails to match. Match exact codepoints.
 - **raw_tipo exactness:** `ProductMap` lookup is exact-match on `(section, raw_product,
   raw_tipo)`. `"BRANCO"` vs seed `"BRANCO Extra"` → silent miss.
+- **D3 double-draw on Turbo reload:** guard chart init (clear/teardown on `turbo:before-cache`). Tooltips show real data, never placeholders.
+- **`turbo-frame` id mismatch** → 200 response ignored, unwanted full-page visit.
 
 ## Conventions
 - `market` is a **string seam** (`"ceasa-rj"`), not a FK. Future CEASAs = new string, no
