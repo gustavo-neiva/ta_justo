@@ -44,7 +44,7 @@ module ApplicationHelper
 
   def timing_label(bucket)
     case bucket
-    when :cheap     then "em época"
+    when :cheap     then "na época"
     when :normal    then "preço normal"
     when :expensive then "fora de época"
     end

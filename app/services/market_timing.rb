@@ -4,7 +4,7 @@
 # distribution, independent of what a shopper pays.
 #
 # From plan §3.2:
-# - Buckets: ≤33rd pct = em época, 33-67 = preço normal, ≥67th = fora de época
+# - Buckets: ≤33rd pct = na época, 33-67 = preço normal, ≥67th = fora de época
 # - Sample guard: ≥30 points required; below that → Null
 # - Paid-independent: uses wholesale prices only, not shopper paid amount
 #
@@ -20,7 +20,7 @@ class MarketTiming
   MINIMUM_SAMPLE_SIZE = 30
 
   BUCKETS = {
-    cheap: "em época",
+    cheap: "na época",
     normal: "preço normal",
     expensive: "fora de época"
   }.freeze

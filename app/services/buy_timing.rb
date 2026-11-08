@@ -11,10 +11,10 @@ class BuyTiming
 
   # Bump when Result's shape changes so stale marshaled structs in the
   # cache can't be reloaded (avoids "struct size differs" TypeError).
-  CACHE_VERSION = 2
+  CACHE_VERSION = 3 # v3: label "em época" → "na época"
 
   LABELS = {
-    cheap:     "em época",
+    cheap:     "na época",
     normal:    "preço normal",
     expensive: "fora de época"
   }.freeze
